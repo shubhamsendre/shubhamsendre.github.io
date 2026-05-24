@@ -1,0 +1,773 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss  xmlns:atom="http://www.w3.org/2005/Atom" 
+      xmlns:media="http://search.yahoo.com/mrss/" 
+      xmlns:content="http://purl.org/rss/1.0/modules/content/" 
+      xmlns:dc="http://purl.org/dc/elements/1.1/" 
+      version="2.0">
+<channel>
+<title>Shubham Sendre</title>
+<link>https://shubhamsendre.github.io/</link>
+<atom:link href="https://shubhamsendre.github.io/index.xml" rel="self" type="application/rss+xml"/>
+<description>Bioinformatics pipelines, single-cell analysis, and reproducible science.</description>
+<generator>quarto-1.9.37</generator>
+<lastBuildDate>Wed, 06 May 2026 00:00:00 GMT</lastBuildDate>
+<item>
+  <title>RO-Crate and Nextflow: Making Your Pipeline Outputs FAIR and Reproducible</title>
+  <dc:creator>Shubham Sendre</dc:creator>
+  <link>https://shubhamsendre.github.io/posts/ro-crate-nextflow/</link>
+  <description><![CDATA[ 
+
+
+
+
+<section id="what-is-ro-crate" class="level2">
+<h2 class="anchored" data-anchor-id="what-is-ro-crate">What Is RO-Crate?</h2>
+<p><strong>RO-Crate</strong> (Research Object Crate) is a community standard for packaging research outputs — workflows, data, code, results — together with structured metadata that makes them self-describing.</p>
+<p>The idea is simple: a folder of pipeline outputs means nothing to anyone except the person who ran it. An RO-Crate is that same folder with a <code>ro-crate-metadata.json</code> at the root that answers the questions any reader would ask:</p>
+<ul>
+<li>What is this?</li>
+<li>Who created it?</li>
+<li>What inputs were used?</li>
+<li>What tools ran, at what versions?</li>
+<li>What outputs were produced?</li>
+<li>When did it run?</li>
+</ul>
+<p>The metadata uses <a href="https://schema.org">schema.org</a> vocabulary — the same structured data standard that underpins Google’s knowledge graph — which means it is both human-readable and machine-parseable by any system that understands the spec.</p>
+<p>RO-Crate is not a new file format. It is a convention: any directory with a <code>ro-crate-metadata.json</code> that conforms to the <a href="https://www.researchobject.org/ro-crate/">RO-Crate specification</a> is a valid RO-Crate.</p>
+<hr>
+</section>
+<section id="two-levels-of-ro-crate-in-a-nextflow-pipeline" class="level2">
+<h2 class="anchored" data-anchor-id="two-levels-of-ro-crate-in-a-nextflow-pipeline">Two Levels of RO-Crate in a Nextflow Pipeline</h2>
+<p>Before going further, it helps to understand that RO-Crate applies at two distinct levels in a Nextflow context:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 16%">
+<col style="width: 45%">
+<col style="width: 38%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Level</th>
+<th>What it describes</th>
+<th>When it exists</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Pipeline-level</strong></td>
+<td>The workflow itself — purpose, authors, license, inputs, outputs</td>
+<td>Once per pipeline, committed to the repo</td>
+</tr>
+<tr class="even">
+<td><strong>Run-level</strong></td>
+<td>A specific execution — input files, output files, parameters, container versions, timestamps</td>
+<td>Generated fresh per pipeline run</td>
+</tr>
+</tbody>
+</table>
+<p>Both are valid RO-Crates. They serve different purposes. The pipeline-level one makes your workflow a citable, discoverable artifact. The run-level one is your audit trail and reproducibility record.</p>
+<hr>
+</section>
+<section id="pipeline-level-ro-crate-describing-your-workflow" class="level2">
+<h2 class="anchored" data-anchor-id="pipeline-level-ro-crate-describing-your-workflow">Pipeline-Level RO-Crate: Describing Your Workflow</h2>
+<p>A pipeline-level <code>ro-crate-metadata.json</code> lives in the root of your pipeline repository. It describes your workflow as a <code>ComputationalWorkflow</code> — a scientific artifact with a name, authors, license, and formal descriptions of its inputs and outputs.</p>
+<section id="the-minimal-structure" class="level3">
+<h3 class="anchored" data-anchor-id="the-minimal-structure">The Minimal Structure</h3>
+<p>Every valid RO-Crate metadata file has two required entries in its <code>@graph</code>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb1-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb1-2">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@context"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"https://w3id.org/ro/crate/1.1/context"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb1-3">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@graph"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">[</span></span>
+<span id="cb1-4">    <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb1-5">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@id"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"ro-crate-metadata.json"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb1-6">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@type"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"CreativeWork"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb1-7">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"conformsTo"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span><span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@id"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"https://w3id.org/ro/crate/1.1"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">},</span></span>
+<span id="cb1-8">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"about"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span><span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@id"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"./"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span></span>
+<span id="cb1-9">    <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb1-10">    <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb1-11">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@id"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"./"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb1-12">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@type"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">[</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Dataset"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"ComputationalWorkflow"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">]</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb1-13">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"name"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"my-annotation-pipeline"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb1-14">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"description"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"A Nextflow pipeline for variant annotation using VEP, FastQC, and MultiQC."</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb1-15">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"license"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"MIT"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb1-16">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"version"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"1.0.0"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb1-17">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"programmingLanguage"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb1-18">        <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@id"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"https://w3id.org/workflowhub/workflow-ro-crate#nextflow"</span></span>
+<span id="cb1-19">      <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">},</span></span>
+<span id="cb1-20">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"author"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">[</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span><span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@id"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"#author-1"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">]</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb1-21">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"input"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">[</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span><span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@id"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"#input-samplesheet"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">]</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb1-22">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"output"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">[</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span><span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@id"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"#output-vcf"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">]</span></span>
+<span id="cb1-23">    <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span></span>
+<span id="cb1-24">  <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">]</span></span>
+<span id="cb1-25"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span></span></code></pre></div></div>
+<p>The first entry (<code>ro-crate-metadata.json</code>) is the metadata descriptor — it always points to <code>./</code> as its subject. The second entry (<code>./</code>) is the root dataset — your pipeline.</p>
+</section>
+<section id="adding-authors" class="level3">
+<h3 class="anchored" data-anchor-id="adding-authors">Adding Authors</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb2-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb2-2">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@id"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"#author-1"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb2-3">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@type"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Person"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb2-4">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"name"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Shubham Sendre"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb2-5">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"affiliation"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Invisibl Cloud Solutions Pvt. Ltd."</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb2-6">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"url"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"https://linkedin.com/in/shubhamsendre"</span></span>
+<span id="cb2-7"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span></span></code></pre></div></div>
+<p>If you have an ORCID, use that as the <code>@id</code> instead of a local fragment — it makes the pipeline citable in academic contexts.</p>
+</section>
+<section id="describing-inputs-and-outputs" class="level3">
+<h3 class="anchored" data-anchor-id="describing-inputs-and-outputs">Describing Inputs and Outputs</h3>
+<p>Formally documenting inputs and outputs using <code>FormalParameter</code> is what makes the pipeline machine-readable. Tools like WorkflowHub parse these to display pipeline interfaces.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb3-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb3-2">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@id"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"#input-samplesheet"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb3-3">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@type"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"FormalParameter"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb3-4">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"name"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"input"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb3-5">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"description"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Samplesheet CSV with sample IDs and paths to FASTQ files"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb3-6">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"encodingFormat"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"text/csv"</span></span>
+<span id="cb3-7"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span><span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb3-8"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb3-9">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@id"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"#output-vcf"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb3-10">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@type"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"FormalParameter"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb3-11">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"name"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"annotated_vcf"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb3-12">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"description"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"VEP-annotated VCF with functional consequence predictions"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb3-13">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"encodingFormat"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"text/tab-separated-values"</span></span>
+<span id="cb3-14"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span></span></code></pre></div></div>
+</section>
+<section id="referencing-software-dependencies" class="level3">
+<h3 class="anchored" data-anchor-id="referencing-software-dependencies">Referencing Software Dependencies</h3>
+<p>Use <a href="https://bio.tools">bio.tools</a> identifiers where they exist — they are the standard registry for bioinformatics tools.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb4-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb4-2">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@id"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"https://bio.tools/vep"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb4-3">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@type"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"SoftwareApplication"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb4-4">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"name"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Ensembl VEP"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb4-5">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"version"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"110.1"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb4-6">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"url"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"https://www.ensembl.org/vep"</span></span>
+<span id="cb4-7"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span></span></code></pre></div></div>
+<p>Add this to <code>hasPart</code> or <code>softwareRequirements</code> on the root Dataset node.</p>
+<hr>
+</section>
+</section>
+<section id="run-level-ro-crate-provenance-with-nf-prov" class="level2">
+<h2 class="anchored" data-anchor-id="run-level-ro-crate-provenance-with-nf-prov">Run-Level RO-Crate: Provenance with nf-prov</h2>
+<p>The pipeline-level RO-Crate describes your workflow as a static artifact. Run-level provenance captures what actually happened in a specific execution — which input files, which container versions, which parameters, what outputs, and when.</p>
+<p>The <a href="https://github.com/nextflow-io/nf-prov"><code>nf-prov</code> plugin</a> handles this in Nextflow.</p>
+<section id="enabling-nf-prov" class="level3">
+<h3 class="anchored" data-anchor-id="enabling-nf-prov">Enabling nf-prov</h3>
+<p>Add to your <code>nextflow.config</code>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode groovy code-with-copy"><code class="sourceCode groovy"><span id="cb5-1">plugins <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb5-2">  id <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'nf-prov@1.2.2'</span></span>
+<span id="cb5-3"><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span></span>
+<span id="cb5-4"></span>
+<span id="cb5-5">prov <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb5-6">  enabled <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">true</span></span>
+<span id="cb5-7">  formats <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb5-8">    rocrate <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb5-9">      file <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">${</span>params<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span>outdir<span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">}</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">/pipeline_info/ro-crate-metadata.json"</span></span>
+<span id="cb5-10">    <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span></span>
+<span id="cb5-11">  <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span></span>
+<span id="cb5-12"><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span></span></code></pre></div></div>
+</section>
+<section id="what-gets-captured-per-run" class="level3">
+<h3 class="anchored" data-anchor-id="what-gets-captured-per-run">What Gets Captured Per Run</h3>
+<p>After every pipeline run, <code>nf-prov</code> writes an <code>ro-crate-metadata.json</code> into your output directory that records:</p>
+<ul>
+<li>Workflow version (exact git commit or tag)</li>
+<li>Input files with checksums (MD5/SHA256)</li>
+<li>Output files with checksums and sizes</li>
+<li>Start and end timestamps per process</li>
+<li>Container image IDs used per process</li>
+<li>Full resolved parameter set at runtime</li>
+</ul>
+<p>A fragment of what this looks like:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb6-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb6-2">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@id"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"#run-2026-04-15"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb6-3">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@type"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"CreateAction"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb6-4">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"instrument"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span><span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@id"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"main.nf"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">},</span></span>
+<span id="cb6-5">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"startTime"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"2026-04-15T09:23:11Z"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb6-6">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"endTime"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"2026-04-15T11:47:32Z"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb6-7">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"object"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">[</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span><span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@id"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"inputs/samplesheet.csv"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">]</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb6-8">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"result"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">[</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span><span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@id"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"results/annotated.vcf.gz"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">]</span></span>
+<span id="cb6-9"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span></span></code></pre></div></div>
+<p>This is the difference between <em>“I ran the pipeline”</em> and <em>“I can prove exactly what ran, on what input, at what time, and what came out.”</em></p>
+<hr>
+</section>
+</section>
+<section id="publishing-to-workflowhub" class="level2">
+<h2 class="anchored" data-anchor-id="publishing-to-workflowhub">Publishing to WorkflowHub</h2>
+<p><a href="https://workflowhub.eu/">WorkflowHub</a> is the community registry for FAIR scientific workflows. It reads your pipeline-level <code>ro-crate-metadata.json</code> directly to:</p>
+<ul>
+<li>Display pipeline metadata, authors, description, and inputs/outputs</li>
+<li>Assign a <strong>DOI</strong> to your pipeline version, making it citable in publications</li>
+<li>Link to bio.tools and Bioschemas entries for referenced software</li>
+<li>Index your pipeline for discoverability across the research community</li>
+</ul>
+<p>Registering is straightforward: you provide a link to your repository or upload a zip, and WorkflowHub validates your RO-Crate and creates a landing page.</p>
+<!--
+  Add your nf-core template example here:
+  Show the ro-crate-metadata.json that ships with the nf-core template
+  and how WorkflowHub reads it for registered nf-core pipelines.
+-->
+<p>A DOI-backed WorkflowHub entry is also a portfolio item — a versioned, citable artifact with your name on it that you can link from your CV or LinkedIn.</p>
+<hr>
+</section>
+<section id="why-this-matters-beyond-good-practice" class="level2">
+<h2 class="anchored" data-anchor-id="why-this-matters-beyond-good-practice">Why This Matters Beyond Good Practice</h2>
+<p>Three concrete reasons to invest time in RO-Crate now:</p>
+<p><strong>Reproducibility is becoming a requirement.</strong> Journals, funders, and institutions increasingly require that computational analyses be reproducible. An <code>nf-prov</code> generated RO-Crate is concrete evidence — not just “here’s the code,” but “here’s the exact execution with checksums.”</p>
+<p><strong>Client and audit requirements.</strong> Delivering pipeline outputs to external clients — pharma companies, hospitals, research institutes — often comes with a question: <em>can you prove what ran?</em> An RO-Crate run record is a ready-made answer.</p>
+<p><strong>The bridge to regulated environments.</strong> Trusted Research Environments (TREs) — secure compute environments for sensitive clinical data used in NHS, UK Biobank, and EU health data spaces — require data provenance and audit trails by design. RO-Crate is one of the standards being evaluated and adopted to satisfy those requirements.</p>
+<p>That last point is where this gets interesting, and where Part 2 of this series picks up.</p>
+<hr>
+</section>
+<section id="quick-reference-from-zero-to-fair-pipeline" class="level2">
+<h2 class="anchored" data-anchor-id="quick-reference-from-zero-to-fair-pipeline">Quick Reference: From Zero to FAIR Pipeline</h2>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Step</th>
+<th>Action</th>
+<th>Time</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td>Create <code>ro-crate-metadata.json</code> in pipeline root</td>
+<td>30 min</td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td>Add authors, description, keywords, I/O parameters</td>
+<td>20 min</td>
+</tr>
+<tr class="odd">
+<td>3</td>
+<td>Enable <code>nf-prov</code> in <code>nextflow.config</code></td>
+<td>15 min</td>
+</tr>
+<tr class="even">
+<td>4</td>
+<td>Run pipeline, inspect generated run-level RO-Crate</td>
+<td>20 min</td>
+</tr>
+<tr class="odd">
+<td>5</td>
+<td>Register pipeline on WorkflowHub for a DOI</td>
+<td>30 min</td>
+</tr>
+</tbody>
+</table>
+<hr>
+</section>
+<section id="whats-next" class="level2">
+<h2 class="anchored" data-anchor-id="whats-next">What’s Next</h2>
+<p><strong>Part 2</strong> goes into Trusted Research Environments — what they are, why they exist for clinical genomics, and how RO-Crate fits into the data governance frameworks that TREs require. We’ll look at real examples from NHS England and the European Health Data Space, and what this means practically for bioinformaticians whose pipelines need to run inside those environments.</p>
+<hr>
+<p><em>Questions about your own Nextflow setup or RO-Crate integration? Connect on <a href="https://linkedin.com/in/shubhamsendre">LinkedIn</a>.</em></p>
+
+
+</section>
+
+ ]]></description>
+  <category>nextflow</category>
+  <category>ro-crate</category>
+  <category>reproducibility</category>
+  <category>bioinformatics</category>
+  <category>workflowhub</category>
+  <guid>https://shubhamsendre.github.io/posts/ro-crate-nextflow/</guid>
+  <pubDate>Wed, 06 May 2026 00:00:00 GMT</pubDate>
+</item>
+</channel>
+</rss>

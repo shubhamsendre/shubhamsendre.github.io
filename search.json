@@ -1,0 +1,93 @@
+[
+  {
+    "objectID": "about.html",
+    "href": "about.html",
+    "title": "About",
+    "section": "",
+    "text": "Bioinformatics engineer with 5+ years of experience building genomics pipelines and cloud-native omics platforms.\nCurrently working on Nextflow pipelines, single-cell multi-omics (scRNA-seq, scATAC-seq), AWS HealthOmics, and reproducible science infrastructure.\nI write about bioinformatics engineering, pipeline design, and the tools that make genomic research more reproducible and scalable."
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Writing",
+    "section": "",
+    "text": "WRITING\n\n\nBioinformatics engineering, pipeline design, and reproducible science."
+  },
+  {
+    "objectID": "index.html#all-essays-sorted-by-date.",
+    "href": "index.html#all-essays-sorted-by-date.",
+    "title": "Writing",
+    "section": "",
+    "text": "Bioinformatics engineering, pipeline design, and reproducible science."
+  },
+  {
+    "objectID": "posts/ro-crate-nextflow/index.html",
+    "href": "posts/ro-crate-nextflow/index.html",
+    "title": "RO-Crate and Nextflow: Making Your Pipeline Outputs FAIR and Reproducible",
+    "section": "",
+    "text": "RO-Crate (Research Object Crate) is a community standard for packaging research outputs — workflows, data, code, results — together with structured metadata that makes them self-describing.\nThe idea is simple: a folder of pipeline outputs means nothing to anyone except the person who ran it. An RO-Crate is that same folder with a ro-crate-metadata.json at the root that answers the questions any reader would ask:\n\nWhat is this?\nWho created it?\nWhat inputs were used?\nWhat tools ran, at what versions?\nWhat outputs were produced?\nWhen did it run?\n\nThe metadata uses schema.org vocabulary — the same structured data standard that underpins Google’s knowledge graph — which means it is both human-readable and machine-parseable by any system that understands the spec.\nRO-Crate is not a new file format. It is a convention: any directory with a ro-crate-metadata.json that conforms to the RO-Crate specification is a valid RO-Crate."
+  },
+  {
+    "objectID": "posts/ro-crate-nextflow/index.html#what-is-ro-crate",
+    "href": "posts/ro-crate-nextflow/index.html#what-is-ro-crate",
+    "title": "RO-Crate and Nextflow: Making Your Pipeline Outputs FAIR and Reproducible",
+    "section": "",
+    "text": "RO-Crate (Research Object Crate) is a community standard for packaging research outputs — workflows, data, code, results — together with structured metadata that makes them self-describing.\nThe idea is simple: a folder of pipeline outputs means nothing to anyone except the person who ran it. An RO-Crate is that same folder with a ro-crate-metadata.json at the root that answers the questions any reader would ask:\n\nWhat is this?\nWho created it?\nWhat inputs were used?\nWhat tools ran, at what versions?\nWhat outputs were produced?\nWhen did it run?\n\nThe metadata uses schema.org vocabulary — the same structured data standard that underpins Google’s knowledge graph — which means it is both human-readable and machine-parseable by any system that understands the spec.\nRO-Crate is not a new file format. It is a convention: any directory with a ro-crate-metadata.json that conforms to the RO-Crate specification is a valid RO-Crate."
+  },
+  {
+    "objectID": "posts/ro-crate-nextflow/index.html#two-levels-of-ro-crate-in-a-nextflow-pipeline",
+    "href": "posts/ro-crate-nextflow/index.html#two-levels-of-ro-crate-in-a-nextflow-pipeline",
+    "title": "RO-Crate and Nextflow: Making Your Pipeline Outputs FAIR and Reproducible",
+    "section": "Two Levels of RO-Crate in a Nextflow Pipeline",
+    "text": "Two Levels of RO-Crate in a Nextflow Pipeline\nBefore going further, it helps to understand that RO-Crate applies at two distinct levels in a Nextflow context:\n\n\n\n\n\n\n\n\nLevel\nWhat it describes\nWhen it exists\n\n\n\n\nPipeline-level\nThe workflow itself — purpose, authors, license, inputs, outputs\nOnce per pipeline, committed to the repo\n\n\nRun-level\nA specific execution — input files, output files, parameters, container versions, timestamps\nGenerated fresh per pipeline run\n\n\n\nBoth are valid RO-Crates. They serve different purposes. The pipeline-level one makes your workflow a citable, discoverable artifact. The run-level one is your audit trail and reproducibility record."
+  },
+  {
+    "objectID": "posts/ro-crate-nextflow/index.html#pipeline-level-ro-crate-describing-your-workflow",
+    "href": "posts/ro-crate-nextflow/index.html#pipeline-level-ro-crate-describing-your-workflow",
+    "title": "RO-Crate and Nextflow: Making Your Pipeline Outputs FAIR and Reproducible",
+    "section": "Pipeline-Level RO-Crate: Describing Your Workflow",
+    "text": "Pipeline-Level RO-Crate: Describing Your Workflow\nA pipeline-level ro-crate-metadata.json lives in the root of your pipeline repository. It describes your workflow as a ComputationalWorkflow — a scientific artifact with a name, authors, license, and formal descriptions of its inputs and outputs.\n\nThe Minimal Structure\nEvery valid RO-Crate metadata file has two required entries in its @graph:\n{\n  \"@context\": \"https://w3id.org/ro/crate/1.1/context\",\n  \"@graph\": [\n    {\n      \"@id\": \"ro-crate-metadata.json\",\n      \"@type\": \"CreativeWork\",\n      \"conformsTo\": {\"@id\": \"https://w3id.org/ro/crate/1.1\"},\n      \"about\": {\"@id\": \"./\"}\n    },\n    {\n      \"@id\": \"./\",\n      \"@type\": [\"Dataset\", \"ComputationalWorkflow\"],\n      \"name\": \"my-annotation-pipeline\",\n      \"description\": \"A Nextflow pipeline for variant annotation using VEP, FastQC, and MultiQC.\",\n      \"license\": \"MIT\",\n      \"version\": \"1.0.0\",\n      \"programmingLanguage\": {\n        \"@id\": \"https://w3id.org/workflowhub/workflow-ro-crate#nextflow\"\n      },\n      \"author\": [{\"@id\": \"#author-1\"}],\n      \"input\": [{\"@id\": \"#input-samplesheet\"}],\n      \"output\": [{\"@id\": \"#output-vcf\"}]\n    }\n  ]\n}\nThe first entry (ro-crate-metadata.json) is the metadata descriptor — it always points to ./ as its subject. The second entry (./) is the root dataset — your pipeline.\n\n\nAdding Authors\n{\n  \"@id\": \"#author-1\",\n  \"@type\": \"Person\",\n  \"name\": \"Shubham Sendre\",\n  \"affiliation\": \"Invisibl Cloud Solutions Pvt. Ltd.\",\n  \"url\": \"https://linkedin.com/in/shubhamsendre\"\n}\nIf you have an ORCID, use that as the @id instead of a local fragment — it makes the pipeline citable in academic contexts.\n\n\nDescribing Inputs and Outputs\nFormally documenting inputs and outputs using FormalParameter is what makes the pipeline machine-readable. Tools like WorkflowHub parse these to display pipeline interfaces.\n{\n  \"@id\": \"#input-samplesheet\",\n  \"@type\": \"FormalParameter\",\n  \"name\": \"input\",\n  \"description\": \"Samplesheet CSV with sample IDs and paths to FASTQ files\",\n  \"encodingFormat\": \"text/csv\"\n},\n{\n  \"@id\": \"#output-vcf\",\n  \"@type\": \"FormalParameter\",\n  \"name\": \"annotated_vcf\",\n  \"description\": \"VEP-annotated VCF with functional consequence predictions\",\n  \"encodingFormat\": \"text/tab-separated-values\"\n}\n\n\nReferencing Software Dependencies\nUse bio.tools identifiers where they exist — they are the standard registry for bioinformatics tools.\n{\n  \"@id\": \"https://bio.tools/vep\",\n  \"@type\": \"SoftwareApplication\",\n  \"name\": \"Ensembl VEP\",\n  \"version\": \"110.1\",\n  \"url\": \"https://www.ensembl.org/vep\"\n}\nAdd this to hasPart or softwareRequirements on the root Dataset node."
+  },
+  {
+    "objectID": "posts/ro-crate-nextflow/index.html#run-level-ro-crate-provenance-with-nf-prov",
+    "href": "posts/ro-crate-nextflow/index.html#run-level-ro-crate-provenance-with-nf-prov",
+    "title": "RO-Crate and Nextflow: Making Your Pipeline Outputs FAIR and Reproducible",
+    "section": "Run-Level RO-Crate: Provenance with nf-prov",
+    "text": "Run-Level RO-Crate: Provenance with nf-prov\nThe pipeline-level RO-Crate describes your workflow as a static artifact. Run-level provenance captures what actually happened in a specific execution — which input files, which container versions, which parameters, what outputs, and when.\nThe nf-prov plugin handles this in Nextflow.\n\nEnabling nf-prov\nAdd to your nextflow.config:\nplugins {\n  id 'nf-prov@1.2.2'\n}\n\nprov {\n  enabled = true\n  formats {\n    rocrate {\n      file = \"${params.outdir}/pipeline_info/ro-crate-metadata.json\"\n    }\n  }\n}\n\n\nWhat Gets Captured Per Run\nAfter every pipeline run, nf-prov writes an ro-crate-metadata.json into your output directory that records:\n\nWorkflow version (exact git commit or tag)\nInput files with checksums (MD5/SHA256)\nOutput files with checksums and sizes\nStart and end timestamps per process\nContainer image IDs used per process\nFull resolved parameter set at runtime\n\nA fragment of what this looks like:\n{\n  \"@id\": \"#run-2026-04-15\",\n  \"@type\": \"CreateAction\",\n  \"instrument\": {\"@id\": \"main.nf\"},\n  \"startTime\": \"2026-04-15T09:23:11Z\",\n  \"endTime\": \"2026-04-15T11:47:32Z\",\n  \"object\": [{\"@id\": \"inputs/samplesheet.csv\"}],\n  \"result\": [{\"@id\": \"results/annotated.vcf.gz\"}]\n}\nThis is the difference between “I ran the pipeline” and “I can prove exactly what ran, on what input, at what time, and what came out.”"
+  },
+  {
+    "objectID": "posts/ro-crate-nextflow/index.html#publishing-to-workflowhub",
+    "href": "posts/ro-crate-nextflow/index.html#publishing-to-workflowhub",
+    "title": "RO-Crate and Nextflow: Making Your Pipeline Outputs FAIR and Reproducible",
+    "section": "Publishing to WorkflowHub",
+    "text": "Publishing to WorkflowHub\nWorkflowHub is the community registry for FAIR scientific workflows. It reads your pipeline-level ro-crate-metadata.json directly to:\n\nDisplay pipeline metadata, authors, description, and inputs/outputs\nAssign a DOI to your pipeline version, making it citable in publications\nLink to bio.tools and Bioschemas entries for referenced software\nIndex your pipeline for discoverability across the research community\n\nRegistering is straightforward: you provide a link to your repository or upload a zip, and WorkflowHub validates your RO-Crate and creates a landing page.\n\nA DOI-backed WorkflowHub entry is also a portfolio item — a versioned, citable artifact with your name on it that you can link from your CV or LinkedIn."
+  },
+  {
+    "objectID": "posts/ro-crate-nextflow/index.html#why-this-matters-beyond-good-practice",
+    "href": "posts/ro-crate-nextflow/index.html#why-this-matters-beyond-good-practice",
+    "title": "RO-Crate and Nextflow: Making Your Pipeline Outputs FAIR and Reproducible",
+    "section": "Why This Matters Beyond Good Practice",
+    "text": "Why This Matters Beyond Good Practice\nThree concrete reasons to invest time in RO-Crate now:\nReproducibility is becoming a requirement. Journals, funders, and institutions increasingly require that computational analyses be reproducible. An nf-prov generated RO-Crate is concrete evidence — not just “here’s the code,” but “here’s the exact execution with checksums.”\nClient and audit requirements. Delivering pipeline outputs to external clients — pharma companies, hospitals, research institutes — often comes with a question: can you prove what ran? An RO-Crate run record is a ready-made answer.\nThe bridge to regulated environments. Trusted Research Environments (TREs) — secure compute environments for sensitive clinical data used in NHS, UK Biobank, and EU health data spaces — require data provenance and audit trails by design. RO-Crate is one of the standards being evaluated and adopted to satisfy those requirements.\nThat last point is where this gets interesting, and where Part 2 of this series picks up."
+  },
+  {
+    "objectID": "posts/ro-crate-nextflow/index.html#quick-reference-from-zero-to-fair-pipeline",
+    "href": "posts/ro-crate-nextflow/index.html#quick-reference-from-zero-to-fair-pipeline",
+    "title": "RO-Crate and Nextflow: Making Your Pipeline Outputs FAIR and Reproducible",
+    "section": "Quick Reference: From Zero to FAIR Pipeline",
+    "text": "Quick Reference: From Zero to FAIR Pipeline\n\n\n\nStep\nAction\nTime\n\n\n\n\n1\nCreate ro-crate-metadata.json in pipeline root\n30 min\n\n\n2\nAdd authors, description, keywords, I/O parameters\n20 min\n\n\n3\nEnable nf-prov in nextflow.config\n15 min\n\n\n4\nRun pipeline, inspect generated run-level RO-Crate\n20 min\n\n\n5\nRegister pipeline on WorkflowHub for a DOI\n30 min"
+  },
+  {
+    "objectID": "posts/ro-crate-nextflow/index.html#whats-next",
+    "href": "posts/ro-crate-nextflow/index.html#whats-next",
+    "title": "RO-Crate and Nextflow: Making Your Pipeline Outputs FAIR and Reproducible",
+    "section": "What’s Next",
+    "text": "What’s Next\nPart 2 goes into Trusted Research Environments — what they are, why they exist for clinical genomics, and how RO-Crate fits into the data governance frameworks that TREs require. We’ll look at real examples from NHS England and the European Health Data Space, and what this means practically for bioinformaticians whose pipelines need to run inside those environments.\n\nQuestions about your own Nextflow setup or RO-Crate integration? Connect on LinkedIn."
+  },
+  {
+    "objectID": "projects.html",
+    "href": "projects.html",
+    "title": "Projects",
+    "section": "",
+    "text": "Open to new roles\n\nProjects coming soon. Currently building:\n\nnf-explainer — AI-powered Nextflow log explainer using Claude API\nscRNA-seq Marimo notebook — Interactive single-cell analysis walkthrough\nMultiQC AI interpreter — Plain-English QC report summaries\n\nCode will be published at github.com/shubhamsendre."
+  }
+]
