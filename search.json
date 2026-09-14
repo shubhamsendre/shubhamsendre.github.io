@@ -1,0 +1,331 @@
+[
+  {
+    "objectID": "projects.html",
+    "href": "projects.html",
+    "title": "Projects",
+    "section": "",
+    "text": "Open to new roles\n\nProjects coming soon. Currently building:\n\nnf-explainer — AI-powered Nextflow log explainer using Claude API\nscRNA-seq Marimo notebook — Interactive single-cell analysis walkthrough\nMultiQC AI interpreter — Plain-English QC report summaries\n\nCode will be published at github.com/shubhamsendre."
+  },
+  {
+    "objectID": "posts/ro-crate-nextflow/index.html",
+    "href": "posts/ro-crate-nextflow/index.html",
+    "title": "RO-Crate and Nextflow: Making Your Pipeline Outputs FAIR and Reproducible",
+    "section": "",
+    "text": "RO-Crate (Research Object Crate) is a community standard for packaging research outputs — workflows, data, code, results — together with structured metadata that makes them self-describing.\nThe idea is simple: a folder of pipeline outputs means nothing to anyone except the person who ran it. An RO-Crate is that same folder with a ro-crate-metadata.json at the root that answers the questions any reader would ask:\n\nWhat is this?\nWho created it?\nWhat inputs were used?\nWhat tools ran, at what versions?\nWhat outputs were produced?\nWhen did it run?\n\nThe metadata uses schema.org vocabulary — the same structured data standard that underpins Google’s knowledge graph — which means it is both human-readable and machine-parseable by any system that understands the spec.\nRO-Crate is not a new file format. It is a convention: any directory with a ro-crate-metadata.json that conforms to the RO-Crate specification is a valid RO-Crate."
+  },
+  {
+    "objectID": "posts/ro-crate-nextflow/index.html#what-is-ro-crate",
+    "href": "posts/ro-crate-nextflow/index.html#what-is-ro-crate",
+    "title": "RO-Crate and Nextflow: Making Your Pipeline Outputs FAIR and Reproducible",
+    "section": "",
+    "text": "RO-Crate (Research Object Crate) is a community standard for packaging research outputs — workflows, data, code, results — together with structured metadata that makes them self-describing.\nThe idea is simple: a folder of pipeline outputs means nothing to anyone except the person who ran it. An RO-Crate is that same folder with a ro-crate-metadata.json at the root that answers the questions any reader would ask:\n\nWhat is this?\nWho created it?\nWhat inputs were used?\nWhat tools ran, at what versions?\nWhat outputs were produced?\nWhen did it run?\n\nThe metadata uses schema.org vocabulary — the same structured data standard that underpins Google’s knowledge graph — which means it is both human-readable and machine-parseable by any system that understands the spec.\nRO-Crate is not a new file format. It is a convention: any directory with a ro-crate-metadata.json that conforms to the RO-Crate specification is a valid RO-Crate."
+  },
+  {
+    "objectID": "posts/ro-crate-nextflow/index.html#two-levels-of-ro-crate-in-a-nextflow-pipeline",
+    "href": "posts/ro-crate-nextflow/index.html#two-levels-of-ro-crate-in-a-nextflow-pipeline",
+    "title": "RO-Crate and Nextflow: Making Your Pipeline Outputs FAIR and Reproducible",
+    "section": "Two Levels of RO-Crate in a Nextflow Pipeline",
+    "text": "Two Levels of RO-Crate in a Nextflow Pipeline\nBefore going further, it helps to understand that RO-Crate applies at two distinct levels in a Nextflow context:\n\n\n\n\n\n\n\n\nLevel\nWhat it describes\nWhen it exists\n\n\n\n\nPipeline-level\nThe workflow itself — purpose, authors, license, inputs, outputs\nOnce per pipeline, committed to the repo\n\n\nRun-level\nA specific execution — input files, output files, parameters, container versions, timestamps\nGenerated fresh per pipeline run\n\n\n\nBoth are valid RO-Crates. They serve different purposes. The pipeline-level one makes your workflow a citable, discoverable artifact. The run-level one is your audit trail and reproducibility record."
+  },
+  {
+    "objectID": "posts/ro-crate-nextflow/index.html#pipeline-level-ro-crate-describing-your-workflow",
+    "href": "posts/ro-crate-nextflow/index.html#pipeline-level-ro-crate-describing-your-workflow",
+    "title": "RO-Crate and Nextflow: Making Your Pipeline Outputs FAIR and Reproducible",
+    "section": "Pipeline-Level RO-Crate: Describing Your Workflow",
+    "text": "Pipeline-Level RO-Crate: Describing Your Workflow\nA pipeline-level ro-crate-metadata.json lives in the root of your pipeline repository. It describes your workflow as a ComputationalWorkflow — a scientific artifact with a name, authors, license, and formal descriptions of its inputs and outputs.\n\nThe Minimal Structure\nEvery valid RO-Crate metadata file has two required entries in its @graph:\n{\n  \"@context\": \"https://w3id.org/ro/crate/1.1/context\",\n  \"@graph\": [\n    {\n      \"@id\": \"ro-crate-metadata.json\",\n      \"@type\": \"CreativeWork\",\n      \"conformsTo\": {\"@id\": \"https://w3id.org/ro/crate/1.1\"},\n      \"about\": {\"@id\": \"./\"}\n    },\n    {\n      \"@id\": \"./\",\n      \"@type\": [\"Dataset\", \"ComputationalWorkflow\"],\n      \"name\": \"my-annotation-pipeline\",\n      \"description\": \"A Nextflow pipeline for variant annotation using VEP, FastQC, and MultiQC.\",\n      \"license\": \"MIT\",\n      \"version\": \"1.0.0\",\n      \"programmingLanguage\": {\n        \"@id\": \"https://w3id.org/workflowhub/workflow-ro-crate#nextflow\"\n      },\n      \"author\": [{\"@id\": \"#author-1\"}],\n      \"input\": [{\"@id\": \"#input-samplesheet\"}],\n      \"output\": [{\"@id\": \"#output-vcf\"}]\n    }\n  ]\n}\nThe first entry (ro-crate-metadata.json) is the metadata descriptor — it always points to ./ as its subject. The second entry (./) is the root dataset — your pipeline.\n\n\nAdding Authors\n{\n  \"@id\": \"#author-1\",\n  \"@type\": \"Person\",\n  \"name\": \"Shubham Sendre\",\n  \"affiliation\": \"Invisibl Cloud Solutions Pvt. Ltd.\",\n  \"url\": \"https://linkedin.com/in/shubhamsendre\"\n}\nIf you have an ORCID, use that as the @id instead of a local fragment — it makes the pipeline citable in academic contexts.\n\n\nDescribing Inputs and Outputs\nFormally documenting inputs and outputs using FormalParameter is what makes the pipeline machine-readable. Tools like WorkflowHub parse these to display pipeline interfaces.\n{\n  \"@id\": \"#input-samplesheet\",\n  \"@type\": \"FormalParameter\",\n  \"name\": \"input\",\n  \"description\": \"Samplesheet CSV with sample IDs and paths to FASTQ files\",\n  \"encodingFormat\": \"text/csv\"\n},\n{\n  \"@id\": \"#output-vcf\",\n  \"@type\": \"FormalParameter\",\n  \"name\": \"annotated_vcf\",\n  \"description\": \"VEP-annotated VCF with functional consequence predictions\",\n  \"encodingFormat\": \"text/tab-separated-values\"\n}\n\n\nReferencing Software Dependencies\nUse bio.tools identifiers where they exist — they are the standard registry for bioinformatics tools.\n{\n  \"@id\": \"https://bio.tools/vep\",\n  \"@type\": \"SoftwareApplication\",\n  \"name\": \"Ensembl VEP\",\n  \"version\": \"110.1\",\n  \"url\": \"https://www.ensembl.org/vep\"\n}\nAdd this to hasPart or softwareRequirements on the root Dataset node."
+  },
+  {
+    "objectID": "posts/ro-crate-nextflow/index.html#run-level-ro-crate-provenance-with-nf-prov",
+    "href": "posts/ro-crate-nextflow/index.html#run-level-ro-crate-provenance-with-nf-prov",
+    "title": "RO-Crate and Nextflow: Making Your Pipeline Outputs FAIR and Reproducible",
+    "section": "Run-Level RO-Crate: Provenance with nf-prov",
+    "text": "Run-Level RO-Crate: Provenance with nf-prov\nThe pipeline-level RO-Crate describes your workflow as a static artifact. Run-level provenance captures what actually happened in a specific execution — which input files, which container versions, which parameters, what outputs, and when.\nThe nf-prov plugin handles this in Nextflow.\n\nEnabling nf-prov\nAdd to your nextflow.config:\nplugins {\n  id 'nf-prov@1.2.2'\n}\n\nprov {\n  enabled = true\n  formats {\n    rocrate {\n      file = \"${params.outdir}/pipeline_info/ro-crate-metadata.json\"\n    }\n  }\n}\n\n\nWhat Gets Captured Per Run\nAfter every pipeline run, nf-prov writes an ro-crate-metadata.json into your output directory that records:\n\nWorkflow version (exact git commit or tag)\nInput files with checksums (MD5/SHA256)\nOutput files with checksums and sizes\nStart and end timestamps per process\nContainer image IDs used per process\nFull resolved parameter set at runtime\n\nA fragment of what this looks like:\n{\n  \"@id\": \"#run-2026-04-15\",\n  \"@type\": \"CreateAction\",\n  \"instrument\": {\"@id\": \"main.nf\"},\n  \"startTime\": \"2026-04-15T09:23:11Z\",\n  \"endTime\": \"2026-04-15T11:47:32Z\",\n  \"object\": [{\"@id\": \"inputs/samplesheet.csv\"}],\n  \"result\": [{\"@id\": \"results/annotated.vcf.gz\"}]\n}\nThis is the difference between “I ran the pipeline” and “I can prove exactly what ran, on what input, at what time, and what came out.”"
+  },
+  {
+    "objectID": "posts/ro-crate-nextflow/index.html#publishing-to-workflowhub",
+    "href": "posts/ro-crate-nextflow/index.html#publishing-to-workflowhub",
+    "title": "RO-Crate and Nextflow: Making Your Pipeline Outputs FAIR and Reproducible",
+    "section": "Publishing to WorkflowHub",
+    "text": "Publishing to WorkflowHub\nWorkflowHub is the community registry for FAIR scientific workflows. It reads your pipeline-level ro-crate-metadata.json directly to:\n\nDisplay pipeline metadata, authors, description, and inputs/outputs\nAssign a DOI to your pipeline version, making it citable in publications\nLink to bio.tools and Bioschemas entries for referenced software\nIndex your pipeline for discoverability across the research community\n\nRegistering is straightforward: you provide a link to your repository or upload a zip, and WorkflowHub validates your RO-Crate and creates a landing page.\n\nA DOI-backed WorkflowHub entry is also a portfolio item — a versioned, citable artifact with your name on it that you can link from your CV or LinkedIn."
+  },
+  {
+    "objectID": "posts/ro-crate-nextflow/index.html#why-this-matters-beyond-good-practice",
+    "href": "posts/ro-crate-nextflow/index.html#why-this-matters-beyond-good-practice",
+    "title": "RO-Crate and Nextflow: Making Your Pipeline Outputs FAIR and Reproducible",
+    "section": "Why This Matters Beyond Good Practice",
+    "text": "Why This Matters Beyond Good Practice\nThree concrete reasons to invest time in RO-Crate now:\nReproducibility is becoming a requirement. Journals, funders, and institutions increasingly require that computational analyses be reproducible. An nf-prov generated RO-Crate is concrete evidence — not just “here’s the code,” but “here’s the exact execution with checksums.”\nClient and audit requirements. Delivering pipeline outputs to external clients — pharma companies, hospitals, research institutes — often comes with a question: can you prove what ran? An RO-Crate run record is a ready-made answer.\nThe bridge to regulated environments. Trusted Research Environments (TREs) — secure compute environments for sensitive clinical data used in NHS, UK Biobank, and EU health data spaces — require data provenance and audit trails by design. RO-Crate is one of the standards being evaluated and adopted to satisfy those requirements.\nThat last point is where this gets interesting, and where Part 2 of this series picks up."
+  },
+  {
+    "objectID": "posts/ro-crate-nextflow/index.html#quick-reference-from-zero-to-fair-pipeline",
+    "href": "posts/ro-crate-nextflow/index.html#quick-reference-from-zero-to-fair-pipeline",
+    "title": "RO-Crate and Nextflow: Making Your Pipeline Outputs FAIR and Reproducible",
+    "section": "Quick Reference: From Zero to FAIR Pipeline",
+    "text": "Quick Reference: From Zero to FAIR Pipeline\n\n\n\nStep\nAction\nTime\n\n\n\n\n1\nCreate ro-crate-metadata.json in pipeline root\n30 min\n\n\n2\nAdd authors, description, keywords, I/O parameters\n20 min\n\n\n3\nEnable nf-prov in nextflow.config\n15 min\n\n\n4\nRun pipeline, inspect generated run-level RO-Crate\n20 min\n\n\n5\nRegister pipeline on WorkflowHub for a DOI\n30 min"
+  },
+  {
+    "objectID": "posts/ro-crate-nextflow/index.html#whats-next",
+    "href": "posts/ro-crate-nextflow/index.html#whats-next",
+    "title": "RO-Crate and Nextflow: Making Your Pipeline Outputs FAIR and Reproducible",
+    "section": "What’s Next",
+    "text": "What’s Next\nPart 2 goes into Trusted Research Environments — what they are, why they exist for clinical genomics, and how RO-Crate fits into the data governance frameworks that TREs require. We’ll look at real examples from NHS England and the European Health Data Space, and what this means practically for bioinformaticians whose pipelines need to run inside those environments.\n\nQuestions about your own Nextflow setup or RO-Crate integration? Connect on LinkedIn."
+  },
+  {
+    "objectID": "posts/he-nuclei-segmentation/draft_v1.html",
+    "href": "posts/he-nuclei-segmentation/draft_v1.html",
+    "title": "Segmenting Nuclei in H&E Images: A Morphometry Pipeline, Not a Diagnosis",
+    "section": "",
+    "text": "This post is about turning a microscopy image into a measurement table — segment the nuclei in an H&E-stained tissue patch, quantify them (count, area, shape), and score how good that segmentation actually is against expert ground truth.\nIt is not a diagnostic tool. I’m a bioinformatics engineer, not a pathologist. Everything here is engineering: given a segmentation, how do you honestly measure whether it’s any good, and how much does the choice of method actually matter?\nThe short answer, with numbers to back it up: a lot."
+  },
+  {
+    "objectID": "posts/he-nuclei-segmentation/draft_v1.html#what-this-is-and-isnt",
+    "href": "posts/he-nuclei-segmentation/draft_v1.html#what-this-is-and-isnt",
+    "title": "Segmenting Nuclei in H&E Images: A Morphometry Pipeline, Not a Diagnosis",
+    "section": "",
+    "text": "This post is about turning a microscopy image into a measurement table — segment the nuclei in an H&E-stained tissue patch, quantify them (count, area, shape), and score how good that segmentation actually is against expert ground truth.\nIt is not a diagnostic tool. I’m a bioinformatics engineer, not a pathologist. Everything here is engineering: given a segmentation, how do you honestly measure whether it’s any good, and how much does the choice of method actually matter?\nThe short answer, with numbers to back it up: a lot."
+  },
+  {
+    "objectID": "posts/he-nuclei-segmentation/draft_v1.html#the-task-instance-segmentation-not-just-find-the-nuclei",
+    "href": "posts/he-nuclei-segmentation/draft_v1.html#the-task-instance-segmentation-not-just-find-the-nuclei",
+    "title": "Segmenting Nuclei in H&E Images: A Morphometry Pipeline, Not a Diagnosis",
+    "section": "The Task: Instance Segmentation, Not Just “Find the Nuclei”",
+    "text": "The Task: Instance Segmentation, Not Just “Find the Nuclei”\nNuclei in a dense tissue patch touch and overlap. The hard part isn’t distinguishing tissue from background — simple intensity thresholding gets you most of the way there. The hard part is separating individual nuclei that are touching, which is what turns this into an instance segmentation problem rather than a semantic one.\nThat distinction matters for evaluation too. A method can get the foreground region almost perfectly right while still merging a cluster of six nuclei into one blob — which is a serious error for any downstream measurement (cell counts, density, morphology), but invisible to a pixel-accuracy or plain Dice score. So this post scores both."
+  },
+  {
+    "objectID": "posts/he-nuclei-segmentation/draft_v1.html#two-methods-scored-honestly",
+    "href": "posts/he-nuclei-segmentation/draft_v1.html#two-methods-scored-honestly",
+    "title": "Segmenting Nuclei in H&E Images: A Morphometry Pipeline, Not a Diagnosis",
+    "section": "Two Methods, Scored Honestly",
+    "text": "Two Methods, Scored Honestly\nClassical: Otsu threshold → distance transform → watershed. Threshold the image, compute a distance-to-background map, find local maxima as seed points, and let watershed grow regions from those seeds. No training, no learned features — just intensity and geometry.\nDeep learning: StarDist, using the pretrained 2D_versatile_he model (trained specifically on H&E-stained nuclei — no fine-tuning done here). StarDist predicts star-convex polygon shapes per nucleus directly, which handles touching nuclei far more gracefully than a purely intensity-driven watershed.\nEvaluation: AJI and Panoptic Quality, not pixel accuracy. Aggregated Jaccard Index and Panoptic Quality are instance-aware — they penalize merged and split nuclei, not just boundary disagreement. I also report a plain foreground Dice score for reference, but it’s the weaker signal of the three.\n\nResults on 4 MoNuSeg patches (256×256, held-out test split)\n\n\n\nMethod\nAJI\nPanoptic Quality\nDice (foreground)\n\n\n\n\nStarDist\n0.655\n0.642\n0.820\n\n\nClassical watershed\n0.387\n0.272\n0.638\n\n\n\nStarDist wins by a wide margin on every metric, and the gap is largest on Panoptic Quality — exactly the metric most sensitive to merge/split errors. Looking at the per-sample breakdown, the classical baseline’s failure mode is consistent: in dense clusters it over-segments, predicting far more instances than actually exist (92 predicted vs. 39 ground-truth nuclei in one patch) because intensity-based watershed markers proliferate wherever the distance transform has a local wobble. That’s the concrete cost of not learning shape priors.\nNone of this means classical watershed is useless — with a well-tuned marker distance it’s a legitimate, zero-training baseline for sparse, well-separated nuclei. It just doesn’t hold up on realistic tissue density."
+  },
+  {
+    "objectID": "posts/he-nuclei-segmentation/draft_v1.html#try-it-interactive-notebook",
+    "href": "posts/he-nuclei-segmentation/draft_v1.html#try-it-interactive-notebook",
+    "title": "Segmenting Nuclei in H&E Images: A Morphometry Pipeline, Not a Diagnosis",
+    "section": "Try It: Interactive Notebook",
+    "text": "Try It: Interactive Notebook\nThe comparison above isn’t fixed — you can change the classical baseline’s parameters and watch its score move in real time. The panel below is a full marimo notebook running in your browser via WebAssembly (Pyodide). No server, no Python installation on your end.\nOne honest caveat on how this is built: StarDist’s segmentation runs on TensorFlow, which cannot execute inside a browser’s WASM sandbox. So the StarDist masks you see below were computed once, offline, and are loaded here as precomputed arrays. The classical watershed baseline, the morphometric plots, and the AJI/PQ/Dice scoring, however, are all genuinely live — scikit-image and SciPy run natively in Pyodide, so moving the slider actually re-segments the image in your browser."
+  },
+  {
+    "objectID": "posts/he-nuclei-segmentation/draft_v1.html#from-masks-to-measurements",
+    "href": "posts/he-nuclei-segmentation/draft_v1.html#from-masks-to-measurements",
+    "title": "Segmenting Nuclei in H&E Images: A Morphometry Pipeline, Not a Diagnosis",
+    "section": "From Masks to Measurements",
+    "text": "From Masks to Measurements\nThe point of segmentation, in most real workflows, isn’t the mask itself — it’s what you can measure from it. Once nuclei are labeled, regionprops turns each one into a row of a table: area, perimeter, eccentricity, solidity, centroid. That table is the actual deliverable — it’s what feeds downstream statistics, not the colorful mask image.\nThis is the throughline of the pipeline: image → instance mask → feature table → validated numbers, with the validation step (AJI/PQ against ground truth) treated as a first-class part of the pipeline rather than an afterthought."
+  },
+  {
+    "objectID": "posts/he-nuclei-segmentation/draft_v1.html#reproducing-this",
+    "href": "posts/he-nuclei-segmentation/draft_v1.html#reproducing-this",
+    "title": "Segmenting Nuclei in H&E Images: A Morphometry Pipeline, Not a Diagnosis",
+    "section": "Reproducing This",
+    "text": "Reproducing This\n\nOffline stage (generate_artifacts.py): fetches 4 patches from the MoNuSeg dataset (CC-BY-NC-SA-4.0) via Hugging Face, runs StarDist inference, computes the classical baseline once, scores both against ground truth, and writes the small artifacts this notebook loads. Needs TensorFlow + StarDist — run it in its own environment.\nInteractive stage (notebook.py): the marimo notebook above. Needs only numpy, pandas, matplotlib, scikit-image, scipy — all WASM-compatible, which is why it can ship as a static page.\n\n# offline (heavy env)\nconda run -n nuclei-seg python generate_artifacts.py\n\n# interactive notebook, locally\nconda run -n quarto-blog marimo edit notebook.py\n\n# export the interactive layer to a static, browser-runnable bundle\nconda run -n quarto-blog marimo export html-wasm notebook.py -o notebook_wasm --mode run\n\nQuestions about the pipeline or the metrics? Connect on LinkedIn."
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Writing",
+    "section": "",
+    "text": "WRITING\n\n\nBioinformatics engineering, pipeline design, and reproducible science."
+  },
+  {
+    "objectID": "index.html#all-essays-sorted-by-date.",
+    "href": "index.html#all-essays-sorted-by-date.",
+    "title": "Writing",
+    "section": "",
+    "text": "Bioinformatics engineering, pipeline design, and reproducible science."
+  },
+  {
+    "objectID": "about.html",
+    "href": "about.html",
+    "title": "About",
+    "section": "",
+    "text": "Bioinformatics engineer with 5+ years of experience building genomics pipelines and cloud-native omics platforms.\nCurrently working on Nextflow pipelines, single-cell multi-omics (scRNA-seq, scATAC-seq), AWS HealthOmics, and reproducible science infrastructure.\nI write about bioinformatics engineering, pipeline design, and the tools that make genomic research more reproducible and scalable."
+  },
+  {
+    "objectID": "posts/ai-bioprivacy-regulation/index.html",
+    "href": "posts/ai-bioprivacy-regulation/index.html",
+    "title": "AI Bioprivacy: Two Different Problems Hiding Behind One Word",
+    "section": "",
+    "text": "“Bioprivacy” sounds like it should mean one thing: keeping biological data private. In practice, the term is doing double duty for two problems that share a prefix and not much else.\nProblem one is the one most people mean by default: your genome, your clinical records, your multi-omic data — kept out of the wrong hands, used only with consent, not re-identifiable after the fact. This is Lifebit’s territory — federated analytics platforms that let researchers query biomedical data without ever moving it off the institution that holds it.\nProblem two is newer and much stranger: AI is making it easier for anyone to design a dangerous biological agent, and the “privacy” question flips — it’s not about protecting an individual’s data, it’s about restricting who can access AI-derived biological capability at all. This is what TwentyTwo was built for, before LatchBio acquired it in June 2026 to form Latch Biosecurity.\nBoth get called “AI bioprivacy.” Both are being shaped by AI in ways that are outrunning regulation. Worth looking at them side by side, because the implementation playbooks — and the regulatory gaps — are almost mirror images of each other."
+  },
+  {
+    "objectID": "posts/ai-bioprivacy-regulation/index.html#one-word-two-problems",
+    "href": "posts/ai-bioprivacy-regulation/index.html#one-word-two-problems",
+    "title": "AI Bioprivacy: Two Different Problems Hiding Behind One Word",
+    "section": "",
+    "text": "“Bioprivacy” sounds like it should mean one thing: keeping biological data private. In practice, the term is doing double duty for two problems that share a prefix and not much else.\nProblem one is the one most people mean by default: your genome, your clinical records, your multi-omic data — kept out of the wrong hands, used only with consent, not re-identifiable after the fact. This is Lifebit’s territory — federated analytics platforms that let researchers query biomedical data without ever moving it off the institution that holds it.\nProblem two is newer and much stranger: AI is making it easier for anyone to design a dangerous biological agent, and the “privacy” question flips — it’s not about protecting an individual’s data, it’s about restricting who can access AI-derived biological capability at all. This is what TwentyTwo was built for, before LatchBio acquired it in June 2026 to form Latch Biosecurity.\nBoth get called “AI bioprivacy.” Both are being shaped by AI in ways that are outrunning regulation. Worth looking at them side by side, because the implementation playbooks — and the regulatory gaps — are almost mirror images of each other."
+  },
+  {
+    "objectID": "posts/ai-bioprivacy-regulation/index.html#problem-one-genomic-data-that-cant-be-anonymized",
+    "href": "posts/ai-bioprivacy-regulation/index.html#problem-one-genomic-data-that-cant-be-anonymized",
+    "title": "AI Bioprivacy: Two Different Problems Hiding Behind One Word",
+    "section": "Problem One: Genomic Data That Can’t Be Anonymized",
+    "text": "Problem One: Genomic Data That Can’t Be Anonymized\nGenomic data breaks the standard privacy toolkit in a specific way: you cannot irreversibly anonymize it. A hashed email address is genuinely useless without the key. A genome is not — it is inherently re-identifying, because it’s unique to you, shared in degraded form with every blood relative, and increasingly matchable against public genealogy databases even after names and dates are stripped out. Research on AI and genomic privacy notes that AI systems can reconstruct identity or infer sensitive attributes from “anonymized” genomic datasets through linkage and model-inversion attacks — the anonymization was never as durable as it looked.\nThat’s the problem Lifebit’s platform is built around, and their published “6-Step Guide to Genomic Data Privacy” is a reasonably complete snapshot of what an implementation actually looks like in 2026:\n\nAudit the data landscape — inventory every genomic data store, classify by sensitivity, score risk.\nFederate instead of centralize — “bring compute to data”: analysis executes at the site holding the data, not after the data has been copied out. This is also a direct answer to jurisdictional data-residency rules, since the data never crosses a border in the first place.\nLayer technical controls — AES-256 at rest, TLS 1.3 in transit, role-based access with MFA and time-limited tokens, differential privacy and k-anonymity on top of de-identification, and secure compute environments that block raw data downloads entirely.\nGovern access formally — a Data Access Committee, standardized request workflows, and consent tracked as a living record rather than a one-time checkbox.\nAutomate compliance monitoring — an “airlock” that inspects every query result for re-identification risk before it’s released, plus real-time anomaly alerts and tamper-proof audit logs.\nKeep regulatory documentation current — compliance matrices mapped to HIPAA, GDPR, and FedRAMP, incident response playbooks, scheduled penetration testing.\n\nThe federated model deserves the emphasis it gets. Lifebit describes it elsewhere as a “peace treaty” between institutions that want to collaborate but are structurally unable to hand raw data to each other — hospitals bound by patient consent scope, biobanks bound by national data-residency law, pharma bound by IP concerns. Centralized-policy, decentralized-execution sidesteps all three: only summary statistics leave the firewall, and disclosure traps (like refusing to return results for cells with fewer than five individuals) stop small-group queries from becoming de-facto re-identification.\nNone of this is exotic. Differential privacy, secure enclaves, and federated learning are established techniques — a recent scoping review of privacy-enhancing technologies for biomedical AI rates federated learning as well-suited to regulatory alignment but vulnerable to gradient-reconstruction attacks without secure aggregation, and homomorphic encryption as strong but 10×–1000× slower than plaintext — fine for batch genomic analytics, unworkable for anything real-time. The honest summary: every privacy-enhancing technique buys privacy by spending either utility, latency, or infrastructure complexity. Nobody gets all three for free, and Lifebit’s stack is best read as a set of pragmatic trade-off choices, not a solved problem.\n\nThe Part Regulation Hasn’t Caught Up To\nHere’s where it gets genuinely unresolved. GDPR and CCPA both center on a “right to be forgotten” — but that right assumes data lives somewhere as a record that can be located and deleted. Once genomic data has been used to train a model, it isn’t a record anymore — it’s embedded in the model’s parameters. Stanford Law’s analysis of this problem puts it plainly: deleting the original file doesn’t remove the learned pattern, and “it remains unclear how the right to be forgotten should apply to internal model parameters that encode learned patterns.”\nMachine unlearning is the proposed technical fix, and it runs into a three-way tension: speed, privacy, and fairness pull against each other, because removing one person’s data point from a trained model can distort the statistics the model relies on for everyone else in that person’s demographic group — especially in a genomic context where population structure is the whole point. And genomic data is familial — it belongs to you and, in degraded form, to every blood relative you have. If one sibling consents to having their genome used and another demands deletion, individual-rights law has no clean answer, because the data point in question isn’t cleanly individual to begin with. This is the argument for moving toward collective or familial privacy rights rather than purely individual ones — a genuinely open regulatory question, not a solved one."
+  },
+  {
+    "objectID": "posts/ai-bioprivacy-regulation/index.html#problem-two-when-bioprivacy-means-restricting-capability-not-protecting-data",
+    "href": "posts/ai-bioprivacy-regulation/index.html#problem-two-when-bioprivacy-means-restricting-capability-not-protecting-data",
+    "title": "AI Bioprivacy: Two Different Problems Hiding Behind One Word",
+    "section": "Problem Two: When “Bioprivacy” Means Restricting Capability, Not Protecting Data",
+    "text": "Problem Two: When “Bioprivacy” Means Restricting Capability, Not Protecting Data\nTwentyTwo’s framing is almost the inverse. The risk isn’t that someone’s biological data leaks — it’s that AI has collapsed the expertise barrier that used to make engineering a dangerous pathogen a nation-state-scale undertaking. Per their Y Combinator profile, the founding premise is blunt: “AI is making biology easy to engineer. Life-saving drugs and therapies are accelerating, but so is the ability for bad actors to create a pandemic.” The acquisition announcement from LatchBio frames the company’s job as building systems that can “distinguish [the line between legitimate and malicious use] and apply safeguards or grant capabilities accordingly” — because that line is shifting from nation-states toward individuals as the tooling gets more accessible.\nConcretely, this cashes out as synthetic nucleic acid order screening — the checkpoint where someone orders a custom DNA sequence from a synthesis provider. Screening has always had two layers: sequence screening (does this match a regulated pathogen database?) and legitimacy screening (does this customer have a real reason to order it?). The second layer has historically been the weak one, because it’s expensive: a 2026 Frontiers evaluation of AI-assisted legitimacy screening puts manual verification at roughly £73 per flagged order — too costly to apply broadly.\nThe same study benchmarked LLMs (Claude Sonnet 4, Gemini 2.5 Pro, Grok 4, and others) on five verification tasks — institutional affiliation, institution type, email domain, sanctions-list screening, and searching for relevant prior work — using web search plus specialized tools like a sanctions-list API, Europe PMC, and ORCID. Gemini 2.5 Pro with tool access hit 89.8% accuracy against a 79.7% human baseline, at roughly $1.18 per customer including human review — about 10x cheaper than the ~$14 manual process. The paper names TwentyTwo and a peer, Aclid, explicitly as commercial actors building this category. TwentyTwo’s own materials describe the broader product as AI agents combined with traditional intelligence sources that assemble background checks “in minutes” with a complete audit trail for the human who makes the final call, plus biosurveillance work reportedly spanning 27 U.S. sites monitoring more than 13 million people and AI biosecurity evaluations that frontier AI labs have adopted.\nThe point isn’t the specific numbers — it’s the shape of the problem. Cheap, accurate AI screening is what makes universal legitimacy checks economically viable for the first time. That’s a genuine capability win. It’s also a new single point of failure: the screening model itself becomes the thing an adversary wants to fool, and there’s no established regulatory framework yet for auditing an AI system that’s making go/no-go decisions on which DNA sequences ship."
+  },
+  {
+    "objectID": "posts/ai-bioprivacy-regulation/index.html#where-regulation-actually-stands",
+    "href": "posts/ai-bioprivacy-regulation/index.html#where-regulation-actually-stands",
+    "title": "AI Bioprivacy: Two Different Problems Hiding Behind One Word",
+    "section": "Where Regulation Actually Stands",
+    "text": "Where Regulation Actually Stands\nNeither problem has settled regulatory footing, and they’re being pulled by different bodies of law.\nOn the data-privacy side, the EU AI Act classifies biometric categorization and identification as high-risk uses requiring risk management, data governance, and human oversight — but its Annex III high-risk obligations were pushed back to December 2, 2027 in a May 2026 agreement between Parliament and Council, so the binding compliance clock hasn’t actually started yet. GDPR still governs the underlying genomic data as a special category, but as covered above, it wasn’t written with model parameters in mind, and nobody has closed that gap.\nOn the biosecurity side, there’s essentially no equivalent statutory framework yet — synthetic nucleic acid screening is largely governed by voluntary industry standards and procurement requirements (e.g., US federal contracts increasingly requiring it) rather than binding law. That’s part of why commercial screening infrastructure like TwentyTwo/Aclid is filling the gap ahead of regulation rather than in response to it — the frontier AI labs adopting these evaluations are doing so voluntarily, not because a regulator requires it.\nThe throughline: in both cases, the technology (federated compute, differential privacy, LLM-based screening) is arguably ahead of the law that’s supposed to govern it. Lifebit’s implementation guide and TwentyTwo’s screening pipeline are both, in effect, private governance filling a gap that public regulation hasn’t caught up to — which is a reasonable stopgap, but not a substitute for the harder legal questions (familial consent, model unlearning, mandatory screening standards) that only legislatures and courts can actually resolve."
+  },
+  {
+    "objectID": "posts/ai-bioprivacy-regulation/index.html#sources",
+    "href": "posts/ai-bioprivacy-regulation/index.html#sources",
+    "title": "AI Bioprivacy: Two Different Problems Hiding Behind One Word",
+    "section": "Sources",
+    "text": "Sources\n\nTwentyTwo — Biosecurity for Life Sciences\nTwentyTwo | Y Combinator\nLatchBio acquires TwentyTwo to form Latch Biosecurity\nEvaluating AI-assisted customer verification for synthetic nucleic acid screening — Frontiers\nLifebit: How To Ensure Genomic Data Privacy — 6-Step Guide\nLifebit: Genomic Data Privacy — Enabling a Genomic Revolution\nLifebit: Why a Federated Analytics Platform is the Ultimate Data Peace Treaty\nArtificial intelligence and genomic data privacy: Balancing innovation with security — NCBI\nSafeguarding biomedical AI: privacy-enhancing technologies scoping review — PMC\nWhy AI Cannot Forget Genomic Data — Stanford Law School\nEU AI Act, Annex III: High-Risk AI Systems\nEU pushes AI Act deadlines for high-risk systems, including biometrics — Biometric Update"
+  },
+  {
+    "objectID": "posts/ro-crate-nextflow/draft_v1.html",
+    "href": "posts/ro-crate-nextflow/draft_v1.html",
+    "title": "RO-Crate and Nextflow: Making Your Pipeline Outputs FAIR and Reproducible",
+    "section": "",
+    "text": "A folder of pipeline outputs is opaque. Raw files sitting on a server answer none of the questions anyone actually needs answered:\n\nWhat tool produced this VCF? At what version?\nWhat input data was used? Are the checksums the same?\nWho ran this? When? On what infrastructure?\nCan I re-run it and get the same result?\n\nThe bioinformatics community has tried to solve this before. Research Objects — the conceptual predecessor to RO-Crate — proposed bundling research materials with rich linked data metadata. The idea was sound. The adoption was not. The technology stack required (OWL ontologies, SPARQL, full RDF toolchains) was too steep for most working scientists and engineers.\nRO-Crate is the pragmatic successor. It was designed, as Soiland-Reyes et al. put it, to use “just enough Linked Data” — structured metadata that is machine-readable and semantically interoperable, but accessible to anyone who can write JSON1."
+  },
+  {
+    "objectID": "posts/ro-crate-nextflow/draft_v1.html#the-problem-ro-crate-was-built-to-solve",
+    "href": "posts/ro-crate-nextflow/draft_v1.html#the-problem-ro-crate-was-built-to-solve",
+    "title": "RO-Crate and Nextflow: Making Your Pipeline Outputs FAIR and Reproducible",
+    "section": "",
+    "text": "A folder of pipeline outputs is opaque. Raw files sitting on a server answer none of the questions anyone actually needs answered:\n\nWhat tool produced this VCF? At what version?\nWhat input data was used? Are the checksums the same?\nWho ran this? When? On what infrastructure?\nCan I re-run it and get the same result?\n\nThe bioinformatics community has tried to solve this before. Research Objects — the conceptual predecessor to RO-Crate — proposed bundling research materials with rich linked data metadata. The idea was sound. The adoption was not. The technology stack required (OWL ontologies, SPARQL, full RDF toolchains) was too steep for most working scientists and engineers.\nRO-Crate is the pragmatic successor. It was designed, as Soiland-Reyes et al. put it, to use “just enough Linked Data” — structured metadata that is machine-readable and semantically interoperable, but accessible to anyone who can write JSON1."
+  },
+  {
+    "objectID": "posts/ro-crate-nextflow/draft_v1.html#what-ro-crate-actually-is",
+    "href": "posts/ro-crate-nextflow/draft_v1.html#what-ro-crate-actually-is",
+    "title": "RO-Crate and Nextflow: Making Your Pipeline Outputs FAIR and Reproducible",
+    "section": "What RO-Crate Actually Is",
+    "text": "What RO-Crate Actually Is\nAn RO-Crate is a directory — any directory — with a single file added: ro-crate-metadata.json. That file uses JSON-LD and schema.org vocabulary to describe what is in the directory, who created it, what software was involved, and how the contents relate to each other.\nJSON-LD is the key design choice here. It looks like ordinary JSON, which means any developer can read and write it without learning a new toolchain. But it carries semantic meaning: every field maps to a well-defined concept in an internationally agreed vocabulary. A Person entity in your metadata means the same thing as a Person in a Harvard data repository or a European health data space.\nThe spec defines three types of entities:\n\n\n\n\n\n\n\n\nEntity Type\nWhat It Describes\nExample\n\n\n\n\nRoot Data Entity\nThe crate itself — the top-level research output\nThe pipeline run directory\n\n\nData Entities\nFiles and directories inside the crate\nresults/annotated.vcf.gz, samplesheet.csv\n\n\nContextual Entities\nThings referenced from outside\nA Person, a SoftwareApplication, an Organisation\n\n\n\nThe FAIR Guiding Principles2 — Findable, Accessible, Interoperable, Reusable — are the stated goal. RO-Crate is the practical mechanism for achieving them without requiring semantic web expertise."
+  },
+  {
+    "objectID": "posts/ro-crate-nextflow/draft_v1.html#two-levels-of-ro-crate-in-a-nextflow-context",
+    "href": "posts/ro-crate-nextflow/draft_v1.html#two-levels-of-ro-crate-in-a-nextflow-context",
+    "title": "RO-Crate and Nextflow: Making Your Pipeline Outputs FAIR and Reproducible",
+    "section": "Two Levels of RO-Crate in a Nextflow Context",
+    "text": "Two Levels of RO-Crate in a Nextflow Context\nBefore writing any JSON, it helps to understand that RO-Crate applies at two distinct levels in a Nextflow pipeline:\n\n\n\n\n\n\n\n\nLevel\nWhat It Describes\nWhen It Exists\n\n\n\n\nPipeline-level\nThe workflow itself — purpose, authors, license, inputs, outputs\nOnce per pipeline, committed to the repo\n\n\nRun-level\nA specific execution — input files, parameters, container versions, timestamps\nGenerated fresh per pipeline run\n\n\n\nBoth are valid RO-Crates. They serve different purposes. The pipeline-level one makes your workflow a citable, discoverable artifact on WorkflowHub. The run-level one is your audit trail and reproducibility record."
+  },
+  {
+    "objectID": "posts/ro-crate-nextflow/draft_v1.html#pipeline-level-ro-crate-describing-your-workflow",
+    "href": "posts/ro-crate-nextflow/draft_v1.html#pipeline-level-ro-crate-describing-your-workflow",
+    "title": "RO-Crate and Nextflow: Making Your Pipeline Outputs FAIR and Reproducible",
+    "section": "Pipeline-Level RO-Crate: Describing Your Workflow",
+    "text": "Pipeline-Level RO-Crate: Describing Your Workflow\nThe pipeline-level ro-crate-metadata.json lives in the root of your repository. It describes your workflow as a ComputationalWorkflow — a scientific artifact with a name, authors, license, and formal descriptions of its inputs and outputs.\n\nThe Minimal Structure\nEvery valid RO-Crate metadata file has two required entries in its @graph:\n{\n  \"@context\": \"https://w3id.org/ro/crate/1.1/context\",\n  \"@graph\": [\n    {\n      \"@id\": \"ro-crate-metadata.json\",\n      \"@type\": \"CreativeWork\",\n      \"conformsTo\": {\"@id\": \"https://w3id.org/ro/crate/1.1\"},\n      \"about\": {\"@id\": \"./\"}\n    },\n    {\n      \"@id\": \"./\",\n      \"@type\": [\"Dataset\", \"ComputationalWorkflow\"],\n      \"name\": \"my-annotation-pipeline\",\n      \"description\": \"A Nextflow pipeline for variant annotation using VEP, FastQC, and MultiQC.\",\n      \"license\": \"MIT\",\n      \"version\": \"1.0.0\",\n      \"programmingLanguage\": {\n        \"@id\": \"https://w3id.org/workflowhub/workflow-ro-crate#nextflow\"\n      },\n      \"author\": [{\"@id\": \"#author-1\"}],\n      \"input\": [{\"@id\": \"#input-samplesheet\"}],\n      \"output\": [{\"@id\": \"#output-vcf\"}]\n    }\n  ]\n}\nThe first entry (ro-crate-metadata.json) is always the metadata descriptor — it points to ./ as its subject. The second entry (./) is the root dataset — your pipeline.\n\n\nAdding Authors\n{\n  \"@id\": \"#author-1\",\n  \"@type\": \"Person\",\n  \"name\": \"Shubham Sendre\",\n  \"affiliation\": \"Invisibl Cloud Solutions Pvt. Ltd.\",\n  \"url\": \"https://orcid.org/0000-0000-0000-0000\"\n}\nUse your ORCID as the @id if you have one — it makes the pipeline citable in academic contexts and is how WorkflowHub links pipeline authorship to your research identity.\n\n\nDescribing Inputs and Outputs\nFormalParameter entries are what make the pipeline machine-readable. WorkflowHub parses these to display pipeline interfaces:\n{\n  \"@id\": \"#input-samplesheet\",\n  \"@type\": \"FormalParameter\",\n  \"name\": \"input\",\n  \"description\": \"Samplesheet CSV with sample IDs and paths to FASTQ files\",\n  \"encodingFormat\": \"text/csv\"\n},\n{\n  \"@id\": \"#output-vcf\",\n  \"@type\": \"FormalParameter\",\n  \"name\": \"annotated_vcf\",\n  \"description\": \"VEP-annotated VCF with functional consequence predictions\",\n  \"encodingFormat\": \"text/tab-separated-values\"\n}\n\n\nReferencing Software Dependencies\nUse bio.tools identifiers where they exist — they are the standard registry for bioinformatics tools and the identifiers WorkflowHub recognises:\n{\n  \"@id\": \"https://bio.tools/vep\",\n  \"@type\": \"SoftwareApplication\",\n  \"name\": \"Ensembl VEP\",\n  \"version\": \"110.1\",\n  \"url\": \"https://www.ensembl.org/vep\"\n}\nAdd this to hasPart or softwareRequirements on the root Dataset node."
+  },
+  {
+    "objectID": "posts/ro-crate-nextflow/draft_v1.html#run-level-ro-crate-provenance-with-nf-prov",
+    "href": "posts/ro-crate-nextflow/draft_v1.html#run-level-ro-crate-provenance-with-nf-prov",
+    "title": "RO-Crate and Nextflow: Making Your Pipeline Outputs FAIR and Reproducible",
+    "section": "Run-Level RO-Crate: Provenance with nf-prov",
+    "text": "Run-Level RO-Crate: Provenance with nf-prov\nThe pipeline-level RO-Crate describes your workflow as a static artifact. Run-level provenance captures what actually happened in a specific execution.\nThis is where the W3C PROV data model3 becomes relevant. PROV defines a standard vocabulary for describing entities (data), activities (processes), and agents (people/software) and the relationships between them. The nf-prov plugin translates Nextflow execution events into a PROV-conformant RO-Crate automatically.\n\nEnabling nf-prov\nAdd to your nextflow.config:\nplugins {\n  id 'nf-prov@1.2.2'\n}\n\nprov {\n  enabled = true\n  formats {\n    rocrate {\n      file = \"${params.outdir}/pipeline_info/ro-crate-metadata.json\"\n    }\n  }\n}\n\n\nWhat Gets Captured Per Run\nAfter every pipeline execution, nf-prov writes an ro-crate-metadata.json into your output directory that records:\n\nWorkflow version (exact git commit or tag)\nInput files with checksums (MD5/SHA256)\nOutput files with checksums and sizes\nStart and end timestamps per process\nContainer image IDs used per process\nFull resolved parameter set at runtime\n\nA fragment of what the run record looks like:\n{\n  \"@id\": \"#run-2026-04-15\",\n  \"@type\": \"CreateAction\",\n  \"instrument\": {\"@id\": \"main.nf\"},\n  \"startTime\": \"2026-04-15T09:23:11Z\",\n  \"endTime\": \"2026-04-15T11:47:32Z\",\n  \"object\": [{\"@id\": \"inputs/samplesheet.csv\"}],\n  \"result\": [{\"@id\": \"results/annotated.vcf.gz\"}]\n}\nThis is the difference between “I ran the pipeline” and “I can prove exactly what ran, on what input, at what time, and what came out.”"
+  },
+  {
+    "objectID": "posts/ro-crate-nextflow/draft_v1.html#publishing-to-workflowhub",
+    "href": "posts/ro-crate-nextflow/draft_v1.html#publishing-to-workflowhub",
+    "title": "RO-Crate and Nextflow: Making Your Pipeline Outputs FAIR and Reproducible",
+    "section": "Publishing to WorkflowHub",
+    "text": "Publishing to WorkflowHub\nWorkflowHub is the community registry for FAIR scientific workflows. It reads your pipeline-level ro-crate-metadata.json directly to:\n\nDisplay pipeline metadata, authors, description, and inputs/outputs\nAssign a DOI to your pipeline version, making it citable in publications\nLink to bio.tools and Bioschemas entries for referenced software\nIndex your pipeline for discoverability across the research community\n\nRegistering is straightforward: provide a link to your repository or upload a zip, and WorkflowHub validates your RO-Crate and creates a landing page with a persistent identifier.\nA DOI-backed WorkflowHub entry is a concrete portfolio artifact — a versioned, citable record with your name on it that you can link from a CV or LinkedIn profile."
+  },
+  {
+    "objectID": "posts/ro-crate-nextflow/draft_v1.html#why-this-matters-beyond-good-practice",
+    "href": "posts/ro-crate-nextflow/draft_v1.html#why-this-matters-beyond-good-practice",
+    "title": "RO-Crate and Nextflow: Making Your Pipeline Outputs FAIR and Reproducible",
+    "section": "Why This Matters Beyond Good Practice",
+    "text": "Why This Matters Beyond Good Practice\nReproducibility is shifting from optional to expected. Journals and funders increasingly require that computational analyses be reproducible. An nf-prov RO-Crate is concrete evidence — not “here’s the code”, but “here’s the exact execution with checksums on every input and output.”\nExternal delivery has a provenance question. Delivering pipeline outputs to pharma companies, hospitals, or research institutes often comes with the question: can you prove what ran? An RO-Crate run record is a ready-made answer that doesn’t require trust — it’s self-describing and verifiable.\nRegulated environments are where this becomes load-bearing. Trusted Research Environments (TREs) — secure compute environments for sensitive clinical data used in NHS, UK Biobank, and EU health data spaces — require data provenance and audit trails by design. RO-Crate is one of the standards being evaluated and adopted to satisfy those requirements. That last point is where this gets genuinely interesting, and it’s where Part 2 of this series picks up."
+  },
+  {
+    "objectID": "posts/ro-crate-nextflow/draft_v1.html#quick-reference-from-zero-to-fair-pipeline",
+    "href": "posts/ro-crate-nextflow/draft_v1.html#quick-reference-from-zero-to-fair-pipeline",
+    "title": "RO-Crate and Nextflow: Making Your Pipeline Outputs FAIR and Reproducible",
+    "section": "Quick Reference: From Zero to FAIR Pipeline",
+    "text": "Quick Reference: From Zero to FAIR Pipeline\n\n\n\n\n\n\n\n\nStep\nAction\nTime\n\n\n\n\n1\nCreate ro-crate-metadata.json in pipeline root\n30 min\n\n\n2\nAdd authors (with ORCID), description, keywords, I/O parameters\n20 min\n\n\n3\nAdd bio.tools IDs for your software dependencies\n15 min\n\n\n4\nEnable nf-prov in nextflow.config\n10 min\n\n\n5\nRun pipeline, inspect generated run-level RO-Crate\n20 min\n\n\n6\nRegister pipeline on WorkflowHub for a DOI\n30 min"
+  },
+  {
+    "objectID": "posts/ro-crate-nextflow/draft_v1.html#references",
+    "href": "posts/ro-crate-nextflow/draft_v1.html#references",
+    "title": "RO-Crate and Nextflow: Making Your Pipeline Outputs FAIR and Reproducible",
+    "section": "References",
+    "text": "References\n\nSoiland-Reyes S et al. (2022). Packaging research artefacts with RO-Crate. Data Science. DOI: 10.3233/DS-210053\nSoiland-Reyes S et al. (2022). Creating lightweight FAIR Digital Objects with RO-Crate. Research Ideas and Outcomes, Vol. 8. DOI: 10.3897/rio.8.e93937\nWilkinson MD et al. (2016). The FAIR Guiding Principles for scientific data management and stewardship. Scientific Data. DOI: 10.1038/sdata.2016.18\nGroth P, Moreau L (2013). PROV-Overview: An Overview of the PROV Family of Documents. W3C Working Group Note. https://www.w3.org/TR/prov-overview/\n\n\nQuestions about your own Nextflow setup or RO-Crate integration? Connect on LinkedIn."
+  },
+  {
+    "objectID": "posts/ro-crate-nextflow/draft_v1.html#footnotes",
+    "href": "posts/ro-crate-nextflow/draft_v1.html#footnotes",
+    "title": "RO-Crate and Nextflow: Making Your Pipeline Outputs FAIR and Reproducible",
+    "section": "Footnotes",
+    "text": "Footnotes\n\n\nSoiland-Reyes S et al. (2022). Packaging research artefacts with RO-Crate. Data Science. DOI: 10.3233/DS-210053↩︎\nWilkinson MD et al. (2016). The FAIR Guiding Principles for scientific data management and stewardship. Scientific Data. DOI: 10.1038/sdata.2016.18↩︎\nGroth P, Moreau L (2013). PROV-Overview: An Overview of the PROV Family of Documents. W3C Working Group Note. https://www.w3.org/TR/prov-overview/↩︎"
+  },
+  {
+    "objectID": "posts/scrna-annotation/draft_v1.html",
+    "href": "posts/scrna-annotation/draft_v1.html",
+    "title": "Annotating Cell Types: CellTypist, Marker Genes, and an LLM, Compared Honestly",
+    "section": "",
+    "text": "Once you’ve clustered a single-cell RNA-seq dataset, you’re left with the same question every time: what is cluster 4, actually? This post walks through three ways to answer that — a reference-based classifier (CellTypist), classical marker-gene scoring, and an LLM reading each cluster’s top differentially expressed genes — run on the same dataset, so their agreements and disagreements are directly comparable.\nIt is not a benchmark paper. One dataset, nine clusters, no ground-truth FACS labels to score against — just three legitimate methods, run side by side, with an honest look at where they line up and where the disagreement is actually informative rather than a bug."
+  },
+  {
+    "objectID": "posts/scrna-annotation/draft_v1.html#what-this-is-and-isnt",
+    "href": "posts/scrna-annotation/draft_v1.html#what-this-is-and-isnt",
+    "title": "Annotating Cell Types: CellTypist, Marker Genes, and an LLM, Compared Honestly",
+    "section": "",
+    "text": "Once you’ve clustered a single-cell RNA-seq dataset, you’re left with the same question every time: what is cluster 4, actually? This post walks through three ways to answer that — a reference-based classifier (CellTypist), classical marker-gene scoring, and an LLM reading each cluster’s top differentially expressed genes — run on the same dataset, so their agreements and disagreements are directly comparable.\nIt is not a benchmark paper. One dataset, nine clusters, no ground-truth FACS labels to score against — just three legitimate methods, run side by side, with an honest look at where they line up and where the disagreement is actually informative rather than a bug."
+  },
+  {
+    "objectID": "posts/scrna-annotation/draft_v1.html#the-dataset-pbmc3k",
+    "href": "posts/scrna-annotation/draft_v1.html#the-dataset-pbmc3k",
+    "title": "Annotating Cell Types: CellTypist, Marker Genes, and an LLM, Compared Honestly",
+    "section": "The Dataset: PBMC3k",
+    "text": "The Dataset: PBMC3k\nPBMC3k is 10x Genomics’ public demo dataset — 2,700 peripheral blood mononuclear cells, sequenced with an early 10x Chromium chemistry, and the same dataset the canonical Scanpy PBMC3k tutorial uses. It’s small, public, and has been independently annotated by enough people that its expected cell types (T cell subsets, B cells, monocytes, NK cells, dendritic cells, platelets) are well established — which makes it a reasonable dataset to sanity-check three annotation methods against, even without a formal ground truth.\nStandard preprocessing: filter cells with fewer than 200 genes and genes in fewer than 3 cells, drop cells with more than 20% mitochondrial reads, normalize to 10,000 counts and log1p-transform, select the top 2,000 highly variable genes, PCA to 50 components, and Leiden clustering at resolution 1.0. This produced 2,698 cells across 9 clusters."
+  },
+  {
+    "objectID": "posts/scrna-annotation/draft_v1.html#method-1-reference-based-annotation-with-celltypist",
+    "href": "posts/scrna-annotation/draft_v1.html#method-1-reference-based-annotation-with-celltypist",
+    "title": "Annotating Cell Types: CellTypist, Marker Genes, and an LLM, Compared Honestly",
+    "section": "Method 1: Reference-Based Annotation with CellTypist",
+    "text": "Method 1: Reference-Based Annotation with CellTypist\nCellTypist is a logistic-regression classifier trained on large, curated reference atlases — here, the Immune_All_Low model, trained for fine-grained immune cell subtypes. It predicts a label per cell, plus a probability for every candidate label, and optionally runs majority voting: given an independent over-clustering (Leiden, in this case), it assigns the cluster’s dominant per-cell label to every cell in that cluster, smoothing out noisy individual calls.\nBoth outputs matter for different reasons: the per-cell labels reveal within-cluster heterogeneity a single cluster-level name would hide; the majority-voted labels give a clean, one-label-per-cluster summary that’s easier to report and compare against the other two methods."
+  },
+  {
+    "objectID": "posts/scrna-annotation/draft_v1.html#method-2-marker-gene-scoring-the-classical-baseline",
+    "href": "posts/scrna-annotation/draft_v1.html#method-2-marker-gene-scoring-the-classical-baseline",
+    "title": "Annotating Cell Types: CellTypist, Marker Genes, and an LLM, Compared Honestly",
+    "section": "Method 2: Marker-Gene Scoring — the Classical Baseline",
+    "text": "Method 2: Marker-Gene Scoring — the Classical Baseline\nNo training, no reference atlas — just canonical PBMC marker gene sets (CD3D/CD3E for T cells, MS4A1/CD79A for B cells, GNLY/NKG7 for NK cells, CD14/LYZ for classical monocytes, FCGR3A/MS4A7 for non-classical monocytes, FCER1A/CST3 for dendritic cells, PPBP/PF4 for platelets, and CD8-specific markers for cytotoxic T cells). Each cluster’s mean sc.tl.score_genes score is computed against every marker set, and the cluster is assigned whichever set scores highest.\nThis is the annotation equivalent of a hand-tuned rule — transparent and fast, but only as good as the marker panel you wrote down in advance. It can’t discover a cell type you didn’t already have a gene list for."
+  },
+  {
+    "objectID": "posts/scrna-annotation/draft_v1.html#method-3-an-llm-reading-marker-genes",
+    "href": "posts/scrna-annotation/draft_v1.html#method-3-an-llm-reading-marker-genes",
+    "title": "Annotating Cell Types: CellTypist, Marker Genes, and an LLM, Compared Honestly",
+    "section": "Method 3: An LLM Reading Marker Genes",
+    "text": "Method 3: An LLM Reading Marker Genes\nFor each cluster, sc.tl.rank_genes_groups (Wilcoxon test) produces its top 10 differentially expressed genes. Those gene symbols — nothing else, no cluster statistics, no prior labels — are handed to an LLM with a fixed prompt asking for the single most likely PBMC cell type:\n\n“Given the top differentially expressed marker genes for one cluster, return the single most likely immune cell type… Top marker genes (highest to lowest significance): {genes}”\n\nTwo choices matter for reproducibility here: the model is pinned to a specific version and called with temperature=0, so the same marker list produces the same label on every rerun rather than drifting between calls; and every prompt/response pair is logged and cached to disk, so re-running the offline script during iteration doesn’t re-call (or re-bill) the API for clusters that haven’t changed.\nThe appeal is obvious: zero marker-panel curation — the model brings its own prior knowledge of immunology instead of a hand-written gene list. The risk is just as real: an LLM can produce a fluent, confident, wrong label with no calibrated uncertainty attached, and it has no way to say “I don’t recognize this” the way a low CellTypist probability can."
+  },
+  {
+    "objectID": "posts/scrna-annotation/draft_v1.html#try-it-interactive-comparison",
+    "href": "posts/scrna-annotation/draft_v1.html#try-it-interactive-comparison",
+    "title": "Annotating Cell Types: CellTypist, Marker Genes, and an LLM, Compared Honestly",
+    "section": "Try It: Interactive Comparison",
+    "text": "Try It: Interactive Comparison\nThe panel below is a full marimo notebook running in your browser via WebAssembly (Pyodide) — no server, no Python install on your end.\nOne honest caveat on how this is built: none of scanpy, anndata, or CellTypist’s scikit-learn backend are verified to run inside a browser’s WASM sandbox, so all three methods above were run once, offline, and their outputs — UMAP coordinates, per-cell and per-cluster labels, confidence scores, the agreement statistics — were saved as small CSV/JSON files. What is genuinely live in the notebook: recoloring the UMAP by any of the four label sets, filtering cells by CellTypist confidence, and browsing the per-cluster table — all pure pandas/NumPy/Matplotlib, recomputed in your browser every time you touch a control."
+  },
+  {
+    "objectID": "posts/scrna-annotation/draft_v1.html#where-the-methods-agree-and-where-they-dont",
+    "href": "posts/scrna-annotation/draft_v1.html#where-the-methods-agree-and-where-they-dont",
+    "title": "Annotating Cell Types: CellTypist, Marker Genes, and an LLM, Compared Honestly",
+    "section": "Where the Methods Agree — and Where They Don’t",
+    "text": "Where the Methods Agree — and Where They Don’t\n\n\n\n\n\n\n\n\n\n\nCluster\nCells\nMarker-gene baseline\nCellTypist (majority)\nAgreement\n\n\n\n\n0\n880\nT cells\nTcm/Naive helper T cells\nBroad match\n\n\n1\n314\nT cells\nTcm/Naive helper T cells\nBroad match\n\n\n2\n347\nB cells\nB cells\nExact match\n\n\n3\n491\nMonocytes (CD14+)\nClassical monocytes\nExact match\n\n\n4\n445\nNK cells\nCD16+ NK cells\nBroad match\n\n\n5\n159\nMonocytes (FCGR3A+)\nNon-classical monocytes\nExact match\n\n\n6\n34\nDendritic cells\nDC\nExact match\n\n\n7\n15\nPlatelets\nMegakaryocytes/platelets\nExact match\n\n\n8\n13\nCD8 T cells\nTem/Trm cytotoxic T cells\nBroad match\n\n\n\nAt the broad cell-type level, the two methods agree on all nine clusters. Every disagreement is a resolution mismatch, not a contradiction: the marker-gene baseline’s fixed panel names a broad category (“T cells,” “NK cells”), while CellTypist’s finer reference model names a specific subtype within it (“Tcm/Naive helper T cells,” “CD16+ NK cells”). That’s the expected failure mode of a hand-picked marker panel — not wrong, just lower resolution than a model trained on a much larger labeled reference.\n\nHow much does CellTypist’s per-cell typing agree with the clusters themselves?\nCellTypist assigns every cell a label independently — it never sees the Leiden partition. Comparing its raw per-cell labels against the Leiden clusters with the Adjusted Rand Index gives 0.449. That’s meaningfully below 1.0, and it should be: the confusion matrix in the notebook shows CellTypist splitting single Leiden clusters (especially cluster 0, the largest T-cell cluster) across several related subtypes — Tcm/Naive helper T cells, Tem/Effector helper T cells, Treg, MAIT cells — rather than just re-deriving the same 9 groups under a different name. A majority-voted, one-label-per-cluster summary (like the table above) is convenient, but it genuinely erases that heterogeneity."
+  },
+  {
+    "objectID": "posts/scrna-annotation/draft_v1.html#discussion-when-to-trust-which",
+    "href": "posts/scrna-annotation/draft_v1.html#discussion-when-to-trust-which",
+    "title": "Annotating Cell Types: CellTypist, Marker Genes, and an LLM, Compared Honestly",
+    "section": "Discussion: When to Trust Which",
+    "text": "Discussion: When to Trust Which\n\nBroad-category calls are cheap to get right; subtype calls are where methods diverge. If you only need “lymphocyte vs. myeloid,” any of these three methods will likely agree. Subtype-level annotation is where the choice of method — and its reference panel’s resolution — actually matters.\nCellTypist’s confidence scores are directly actionable. Because it outputs a real probability per cell, you can filter to “only the calls I’m confident in” and manually review the rest — see the confidence slider in the notebook above. Neither the marker-gene baseline nor a plain LLM label comes with a comparably calibrated uncertainty signal.\nLLM annotation trades curation cost for hallucination risk. No marker panel to write and maintain, but also no guarantee the label is grounded in anything beyond the model’s prior — and unlike CellTypist, it can’t natively flag “this doesn’t look like any cell type I know.” Treat it as a fast first pass to be checked, not a final call.\nNone of this generalizes across tissue or disease state without re-checking. PBMC3k is about as friendly a dataset as scRNA-seq annotation gets — a well-studied tissue with a mature reference model. Solid tumor or disease-state datasets, where CellTypist’s training distribution is a worse match and marker panels are less standardized, will show more disagreement between all three methods than this post does."
+  },
+  {
+    "objectID": "posts/scrna-annotation/draft_v1.html#reproducing-this",
+    "href": "posts/scrna-annotation/draft_v1.html#reproducing-this",
+    "title": "Annotating Cell Types: CellTypist, Marker Genes, and an LLM, Compared Honestly",
+    "section": "Reproducing This",
+    "text": "Reproducing This\n\nOffline stage (generate_artifacts.py): downloads PBMC3k, runs the standard Scanpy preprocessing/clustering pipeline, runs CellTypist (Immune_All_Low model with majority voting), scores the marker-gene baseline, calls an LLM per cluster for the third annotation, computes the agreement statistics, and writes the small artifacts this notebook loads. The LLM step reads its API key from the ANTHROPIC_API_KEY environment variable only — never hardcode it — and caches every response to disk so reruns don’t re-call the API for unchanged clusters.\nInteractive stage (notebook.py): the marimo notebook above. Needs only numpy, pandas, matplotlib, and marimo — all WASM-compatible, which is why it can ship as a static page with no server behind it.\n\n# offline (heavy env: scanpy, anndata, celltypist, anthropic)\nexport ANTHROPIC_API_KEY=...\nconda run -n scanpy python generate_artifacts.py\n\n# interactive notebook, locally\nconda run -n quarto-blog marimo edit notebook.py\n\n# export the interactive layer to a static, browser-runnable bundle\nconda run -n quarto-blog marimo export html-wasm notebook.py -o notebook_wasm --mode run\n\nQuestions about the pipeline or the comparison? Connect on LinkedIn."
+  }
+]

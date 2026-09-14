@@ -1,0 +1,10 @@
+cluster,n_cells,top_marker_genes,marker_baseline_label,celltypist_majority_label,llm_label
+0,880,"LDHB, RPS12, CD3D, RPS25, LTB, TPT1, EEF1A1, RPS3, RPS6, RPS27",T cells,Tcm/Naive helper T cells,
+1,314,"MALAT1, RPL32, RPS27, RPS12, RPL31, RPS6, RPL13, RPL27A, RPS3A, RPS25",T cells,Tcm/Naive helper T cells,
+2,347,"CD74, CD79A, HLA-DRA, CD79B, HLA-DPB1, MS4A1, HLA-DQA1, HLA-DRB1, CD37, HLA-DQB1",B cells,B cells,
+3,491,"S100A9, LYZ, S100A8, TYROBP, FTL, CST3, FCN1, FTH1, S100A6, LGALS1",Monocytes (CD14+),Classical monocytes,
+4,445,"NKG7, CST7, CTSW, GZMA, B2M, CCL5, HLA-C, HLA-A, PRF1, GZMM",NK cells,CD16+ NK cells,
+5,159,"LST1, FCER1G, COTL1, AIF1, FCGR3A, IFITM2, FTH1, IFITM3, SAT1, SERPINA1",Monocytes (FCGR3A+),Non-classical monocytes,
+6,34,"HLA-DPA1, HLA-DPB1, HLA-DRB1, HLA-DRA, CD74, CST3, HLA-DRB5, HLA-DQA1, FCER1A, HLA-DMA",Dendritic cells,DC,
+7,15,"PPBP, NRGN, GPX1, RGS10, CALM3, TAGLN2, MYL6, PF4, SDPR, GNG11",Platelets,Megakaryocytes/platelets,
+8,13,"ACTG1, GAPDH, SLC25A5, CFL1, SNRPB, CORO1A, KIAA0101, HMGB2, ACTB, SNRPA",CD8 T cells,Tem/Trm cytotoxic T cells,

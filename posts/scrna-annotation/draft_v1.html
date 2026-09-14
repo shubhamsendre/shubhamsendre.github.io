@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.18">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Shubham Sendre">
+<meta name="dcterms.date" content="2026-09-13">
+<meta name="description" content="Three ways to name a cluster in a PBMC scRNA-seq dataset — a reference-based classifier (CellTypist), classical marker-gene scoring, and an LLM reading marker genes — compared on where they agree, where they don’t, and why, in an interactive marimo notebook.">
+
+<title>Annotating Cell Types: CellTypist, Marker Genes, and an LLM, Compared Honestly – Shubham Sendre</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<link href="../../assets/favicon.ico" rel="icon">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-2411b9424b0e2cbcb467ea465e37b99a.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-c8d6e563e672aeda681fb5e011737bcd.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<style>html{ scroll-behavior: smooth; }</style>
+
+
+</head>
+
+<body class="floating nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Shubham Sendre</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../index.html"> 
+<span class="menu-text">Writing</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../projects.html"> 
+<span class="menu-text">Projects</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/shubhamsendre"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://linkedin.com/in/shubhamsendre"> <i class="bi bi-linkedin" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#what-this-is-and-isnt" id="toc-what-this-is-and-isnt" class="nav-link active" data-scroll-target="#what-this-is-and-isnt">What This Is (and Isn’t)</a></li>
+  <li><a href="#the-dataset-pbmc3k" id="toc-the-dataset-pbmc3k" class="nav-link" data-scroll-target="#the-dataset-pbmc3k">The Dataset: PBMC3k</a></li>
+  <li><a href="#method-1-reference-based-annotation-with-celltypist" id="toc-method-1-reference-based-annotation-with-celltypist" class="nav-link" data-scroll-target="#method-1-reference-based-annotation-with-celltypist">Method 1: Reference-Based Annotation with CellTypist</a></li>
+  <li><a href="#method-2-marker-gene-scoring-the-classical-baseline" id="toc-method-2-marker-gene-scoring-the-classical-baseline" class="nav-link" data-scroll-target="#method-2-marker-gene-scoring-the-classical-baseline">Method 2: Marker-Gene Scoring — the Classical Baseline</a></li>
+  <li><a href="#method-3-an-llm-reading-marker-genes" id="toc-method-3-an-llm-reading-marker-genes" class="nav-link" data-scroll-target="#method-3-an-llm-reading-marker-genes">Method 3: An LLM Reading Marker Genes</a></li>
+  <li><a href="#try-it-interactive-comparison" id="toc-try-it-interactive-comparison" class="nav-link" data-scroll-target="#try-it-interactive-comparison">Try It: Interactive Comparison</a></li>
+  <li><a href="#where-the-methods-agree-and-where-they-dont" id="toc-where-the-methods-agree-and-where-they-dont" class="nav-link" data-scroll-target="#where-the-methods-agree-and-where-they-dont">Where the Methods Agree — and Where They Don’t</a>
+  <ul class="collapse">
+  <li><a href="#how-much-does-celltypists-per-cell-typing-agree-with-the-clusters-themselves" id="toc-how-much-does-celltypists-per-cell-typing-agree-with-the-clusters-themselves" class="nav-link" data-scroll-target="#how-much-does-celltypists-per-cell-typing-agree-with-the-clusters-themselves">How much does CellTypist’s per-cell typing agree with the clusters themselves?</a></li>
+  </ul></li>
+  <li><a href="#discussion-when-to-trust-which" id="toc-discussion-when-to-trust-which" class="nav-link" data-scroll-target="#discussion-when-to-trust-which">Discussion: When to Trust Which</a></li>
+  <li><a href="#reproducing-this" id="toc-reproducing-this" class="nav-link" data-scroll-target="#reproducing-this">Reproducing This</a></li>
+  </ul>
+</nav>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Annotating Cell Types: CellTypist, Marker Genes, and an LLM, Compared Honestly</h1>
+  <div class="quarto-categories">
+    <div class="quarto-category">scrna-seq</div>
+    <div class="quarto-category">celltypist</div>
+    <div class="quarto-category">llm</div>
+    <div class="quarto-category">annotation</div>
+    <div class="quarto-category">marimo</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    Three ways to name a cluster in a PBMC scRNA-seq dataset — a reference-based classifier (CellTypist), classical marker-gene scoring, and an LLM reading marker genes — compared on where they agree, where they don’t, and why, in an interactive marimo notebook.
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Shubham Sendre </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">September 13, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="what-this-is-and-isnt" class="level2">
+<h2 class="anchored" data-anchor-id="what-this-is-and-isnt">What This Is (and Isn’t)</h2>
+<p>Once you’ve clustered a single-cell RNA-seq dataset, you’re left with the same question every time: <strong>what is cluster 4, actually?</strong> This post walks through three ways to answer that — a reference-based classifier (<a href="https://www.celltypist.org/">CellTypist</a>), classical marker-gene scoring, and an LLM reading each cluster’s top differentially expressed genes — run on the same dataset, so their agreements and disagreements are directly comparable.</p>
+<p>It is <strong>not</strong> a benchmark paper. One dataset, nine clusters, no ground-truth FACS labels to score against — just three legitimate methods, run side by side, with an honest look at where they line up and where the disagreement is actually informative rather than a bug.</p>
+<hr>
+</section>
+<section id="the-dataset-pbmc3k" class="level2">
+<h2 class="anchored" data-anchor-id="the-dataset-pbmc3k">The Dataset: PBMC3k</h2>
+<p><a href="https://support.10xgenomics.com/single-cell-gene-expression/datasets/1.1.0/pbmc3k">PBMC3k</a> is 10x Genomics’ public demo dataset — 2,700 peripheral blood mononuclear cells, sequenced with an early 10x Chromium chemistry, and the same dataset the canonical <a href="https://scanpy.readthedocs.io/en/stable/tutorials/basics/clustering.html">Scanpy PBMC3k tutorial</a> uses. It’s small, public, and has been independently annotated by enough people that its expected cell types (T cell subsets, B cells, monocytes, NK cells, dendritic cells, platelets) are well established — which makes it a reasonable dataset to sanity-check three annotation methods against, even without a formal ground truth.</p>
+<p>Standard preprocessing: filter cells with fewer than 200 genes and genes in fewer than 3 cells, drop cells with more than 20% mitochondrial reads, normalize to 10,000 counts and log1p-transform, select the top 2,000 highly variable genes, PCA to 50 components, and Leiden clustering at resolution 1.0. This produced <strong>2,698 cells across 9 clusters</strong>.</p>
+<hr>
+</section>
+<section id="method-1-reference-based-annotation-with-celltypist" class="level2">
+<h2 class="anchored" data-anchor-id="method-1-reference-based-annotation-with-celltypist">Method 1: Reference-Based Annotation with CellTypist</h2>
+<p><a href="https://www.celltypist.org/">CellTypist</a> is a logistic-regression classifier trained on large, curated reference atlases — here, the <code>Immune_All_Low</code> model, trained for fine-grained immune cell subtypes. It predicts a label <strong>per cell</strong>, plus a probability for every candidate label, and optionally runs <strong>majority voting</strong>: given an independent over-clustering (Leiden, in this case), it assigns the <em>cluster’s</em> dominant per-cell label to every cell in that cluster, smoothing out noisy individual calls.</p>
+<p>Both outputs matter for different reasons: the per-cell labels reveal within-cluster heterogeneity a single cluster-level name would hide; the majority-voted labels give a clean, one-label-per-cluster summary that’s easier to report and compare against the other two methods.</p>
+<hr>
+</section>
+<section id="method-2-marker-gene-scoring-the-classical-baseline" class="level2">
+<h2 class="anchored" data-anchor-id="method-2-marker-gene-scoring-the-classical-baseline">Method 2: Marker-Gene Scoring — the Classical Baseline</h2>
+<p>No training, no reference atlas — just canonical PBMC marker gene sets (<code>CD3D</code>/<code>CD3E</code> for T cells, <code>MS4A1</code>/<code>CD79A</code> for B cells, <code>GNLY</code>/<code>NKG7</code> for NK cells, <code>CD14</code>/<code>LYZ</code> for classical monocytes, <code>FCGR3A</code>/<code>MS4A7</code> for non-classical monocytes, <code>FCER1A</code>/<code>CST3</code> for dendritic cells, <code>PPBP</code>/<code>PF4</code> for platelets, and CD8-specific markers for cytotoxic T cells). Each cluster’s mean <code>sc.tl.score_genes</code> score is computed against every marker set, and the cluster is assigned whichever set scores highest.</p>
+<p>This is the annotation equivalent of a hand-tuned rule — transparent and fast, but only as good as the marker panel you wrote down in advance. It can’t discover a cell type you didn’t already have a gene list for.</p>
+<hr>
+</section>
+<section id="method-3-an-llm-reading-marker-genes" class="level2">
+<h2 class="anchored" data-anchor-id="method-3-an-llm-reading-marker-genes">Method 3: An LLM Reading Marker Genes</h2>
+<p>For each cluster, <code>sc.tl.rank_genes_groups</code> (Wilcoxon test) produces its top 10 differentially expressed genes. Those gene symbols — nothing else, no cluster statistics, no prior labels — are handed to an LLM with a fixed prompt asking for the single most likely PBMC cell type:</p>
+<blockquote class="blockquote">
+<p><em>“Given the top differentially expressed marker genes for one cluster, return the single most likely immune cell type… Top marker genes (highest to lowest significance): {genes}”</em></p>
+</blockquote>
+<p>Two choices matter for reproducibility here: the model is pinned to a specific version and called with <code>temperature=0</code>, so the same marker list produces the same label on every rerun rather than drifting between calls; and every prompt/response pair is logged and cached to disk, so re-running the offline script during iteration doesn’t re-call (or re-bill) the API for clusters that haven’t changed.</p>
+<p>The appeal is obvious: <strong>zero marker-panel curation</strong> — the model brings its own prior knowledge of immunology instead of a hand-written gene list. The risk is just as real: an LLM can produce a fluent, confident, <em>wrong</em> label with no calibrated uncertainty attached, and it has no way to say “I don’t recognize this” the way a low CellTypist probability can.</p>
+<hr>
+</section>
+<section id="try-it-interactive-comparison" class="level2">
+<h2 class="anchored" data-anchor-id="try-it-interactive-comparison">Try It: Interactive Comparison</h2>
+<p>The panel below is a full <a href="https://marimo.io">marimo</a> notebook running <strong>in your browser</strong> via WebAssembly (Pyodide) — no server, no Python install on your end.</p>
+<p>One honest caveat on how this is built: <strong>none of <code>scanpy</code>, <code>anndata</code>, or CellTypist’s scikit-learn backend are verified to run inside a browser’s WASM sandbox</strong>, so all three methods above were run once, offline, and their outputs — UMAP coordinates, per-cell and per-cluster labels, confidence scores, the agreement statistics — were saved as small CSV/JSON files. What <em>is</em> genuinely live in the notebook: recoloring the UMAP by any of the four label sets, filtering cells by CellTypist confidence, and browsing the per-cluster table — all pure pandas/NumPy/Matplotlib, recomputed in your browser every time you touch a control.</p>
+<iframe src="notebook_wasm/index.html" width="100%" height="1500" style="border: 1px solid #ddd; border-radius: 6px;" loading="lazy">
+</iframe>
+<hr>
+</section>
+<section id="where-the-methods-agree-and-where-they-dont" class="level2">
+<h2 class="anchored" data-anchor-id="where-the-methods-agree-and-where-they-dont">Where the Methods Agree — and Where They Don’t</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Cluster</th>
+<th>Cells</th>
+<th>Marker-gene baseline</th>
+<th>CellTypist (majority)</th>
+<th>Agreement</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>0</td>
+<td>880</td>
+<td>T cells</td>
+<td>Tcm/Naive helper T cells</td>
+<td>Broad match</td>
+</tr>
+<tr class="even">
+<td>1</td>
+<td>314</td>
+<td>T cells</td>
+<td>Tcm/Naive helper T cells</td>
+<td>Broad match</td>
+</tr>
+<tr class="odd">
+<td>2</td>
+<td>347</td>
+<td>B cells</td>
+<td>B cells</td>
+<td><strong>Exact match</strong></td>
+</tr>
+<tr class="even">
+<td>3</td>
+<td>491</td>
+<td>Monocytes (CD14+)</td>
+<td>Classical monocytes</td>
+<td><strong>Exact match</strong></td>
+</tr>
+<tr class="odd">
+<td>4</td>
+<td>445</td>
+<td>NK cells</td>
+<td>CD16+ NK cells</td>
+<td>Broad match</td>
+</tr>
+<tr class="even">
+<td>5</td>
+<td>159</td>
+<td>Monocytes (FCGR3A+)</td>
+<td>Non-classical monocytes</td>
+<td><strong>Exact match</strong></td>
+</tr>
+<tr class="odd">
+<td>6</td>
+<td>34</td>
+<td>Dendritic cells</td>
+<td>DC</td>
+<td><strong>Exact match</strong></td>
+</tr>
+<tr class="even">
+<td>7</td>
+<td>15</td>
+<td>Platelets</td>
+<td>Megakaryocytes/platelets</td>
+<td><strong>Exact match</strong></td>
+</tr>
+<tr class="odd">
+<td>8</td>
+<td>13</td>
+<td>CD8 T cells</td>
+<td>Tem/Trm cytotoxic T cells</td>
+<td>Broad match</td>
+</tr>
+</tbody>
+</table>
+<p>At the broad cell-type level, the two methods agree on <strong>all nine clusters</strong>. Every disagreement is a resolution mismatch, not a contradiction: the marker-gene baseline’s fixed panel names a broad category (“T cells,” “NK cells”), while CellTypist’s finer reference model names a specific subtype within it (“Tcm/Naive helper T cells,” “CD16+ NK cells”). That’s the expected failure mode of a hand-picked marker panel — not wrong, just lower resolution than a model trained on a much larger labeled reference.</p>
+<section id="how-much-does-celltypists-per-cell-typing-agree-with-the-clusters-themselves" class="level3">
+<h3 class="anchored" data-anchor-id="how-much-does-celltypists-per-cell-typing-agree-with-the-clusters-themselves">How much does CellTypist’s per-cell typing agree with the clusters themselves?</h3>
+<p>CellTypist assigns every cell a label independently — it never sees the Leiden partition. Comparing its raw per-cell labels against the Leiden clusters with the <strong>Adjusted Rand Index</strong> gives <code>0.449</code>. That’s meaningfully below 1.0, and it should be: the confusion matrix in the notebook shows CellTypist splitting single Leiden clusters (especially cluster 0, the largest T-cell cluster) across several related subtypes — <code>Tcm/Naive helper T cells</code>, <code>Tem/Effector helper T cells</code>, <code>Treg</code>, <code>MAIT cells</code> — rather than just re-deriving the same 9 groups under a different name. A majority-voted, one-label-per-cluster summary (like the table above) is convenient, but it genuinely erases that heterogeneity.</p>
+<hr>
+</section>
+</section>
+<section id="discussion-when-to-trust-which" class="level2">
+<h2 class="anchored" data-anchor-id="discussion-when-to-trust-which">Discussion: When to Trust Which</h2>
+<ul>
+<li><strong>Broad-category calls are cheap to get right; subtype calls are where methods diverge.</strong> If you only need “lymphocyte vs.&nbsp;myeloid,” any of these three methods will likely agree. Subtype-level annotation is where the choice of method — and its reference panel’s resolution — actually matters.</li>
+<li><strong>CellTypist’s confidence scores are directly actionable.</strong> Because it outputs a real probability per cell, you can filter to “only the calls I’m confident in” and manually review the rest — see the confidence slider in the notebook above. Neither the marker-gene baseline nor a plain LLM label comes with a comparably calibrated uncertainty signal.</li>
+<li><strong>LLM annotation trades curation cost for hallucination risk.</strong> No marker panel to write and maintain, but also no guarantee the label is grounded in anything beyond the model’s prior — and unlike CellTypist, it can’t natively flag “this doesn’t look like any cell type I know.” Treat it as a fast first pass to be checked, not a final call.</li>
+<li><strong>None of this generalizes across tissue or disease state without re-checking.</strong> PBMC3k is about as friendly a dataset as scRNA-seq annotation gets — a well-studied tissue with a mature reference model. Solid tumor or disease-state datasets, where CellTypist’s training distribution is a worse match and marker panels are less standardized, will show more disagreement between all three methods than this post does.</li>
+</ul>
+<hr>
+</section>
+<section id="reproducing-this" class="level2">
+<h2 class="anchored" data-anchor-id="reproducing-this">Reproducing This</h2>
+<ul>
+<li><strong>Offline stage</strong> (<code>generate_artifacts.py</code>): downloads PBMC3k, runs the standard Scanpy preprocessing/clustering pipeline, runs CellTypist (<code>Immune_All_Low</code> model with majority voting), scores the marker-gene baseline, calls an LLM per cluster for the third annotation, computes the agreement statistics, and writes the small artifacts this notebook loads. The LLM step reads its API key from the <code>ANTHROPIC_API_KEY</code> environment variable only — never hardcode it — and caches every response to disk so reruns don’t re-call the API for unchanged clusters.</li>
+<li><strong>Interactive stage</strong> (<code>notebook.py</code>): the marimo notebook above. Needs only <code>numpy</code>, <code>pandas</code>, <code>matplotlib</code>, and <code>marimo</code> — all WASM-compatible, which is why it can ship as a static page with no server behind it.</li>
+</ul>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># offline (heavy env: scanpy, anndata, celltypist, anthropic)</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">ANTHROPIC_API_KEY</span><span class="op">=</span>...</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="ex">conda</span> run <span class="at">-n</span> scanpy python generate_artifacts.py</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co"># interactive notebook, locally</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="ex">conda</span> run <span class="at">-n</span> quarto-blog marimo edit notebook.py</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co"># export the interactive layer to a static, browser-runnable bundle</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="ex">conda</span> run <span class="at">-n</span> quarto-blog marimo export html-wasm notebook.py <span class="at">-o</span> notebook_wasm <span class="at">--mode</span> run</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<hr>
+<p><em>Questions about the pipeline or the comparison? Connect on <a href="https://linkedin.com/in/shubhamsendre">LinkedIn</a>.</em></p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script src="assets/filter-tags.js"></script>
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/shubhamsendre\.github\.io");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+            // target, if specified
+            link.setAttribute("target", "_blank");
+            if (link.getAttribute("rel") === null) {
+              link.setAttribute("rel", "noopener");
+            }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+      &nbsp;
+    </div>   
+    <div class="nav-footer-center">
+<p>Shubham Sendre · 2026</p>
+</div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+
+
+
+
+<script src="../../site_libs/quarto-html/zenscroll-min.js"></script>
+</body></html>

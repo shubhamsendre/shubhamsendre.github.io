@@ -1,0 +1,2000 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss  xmlns:atom="http://www.w3.org/2005/Atom" 
+      xmlns:media="http://search.yahoo.com/mrss/" 
+      xmlns:content="http://purl.org/rss/1.0/modules/content/" 
+      xmlns:dc="http://purl.org/dc/elements/1.1/" 
+      version="2.0">
+<channel>
+<title>Shubham Sendre</title>
+<link>https://shubhamsendre.github.io/</link>
+<atom:link href="https://shubhamsendre.github.io/index.xml" rel="self" type="application/rss+xml"/>
+<description>Bioinformatics pipelines, single-cell analysis, and reproducible science.</description>
+<generator>quarto-1.10.18</generator>
+<lastBuildDate>Mon, 14 Sep 2026 00:00:00 GMT</lastBuildDate>
+<item>
+  <title>AI Bioprivacy: Two Different Problems Hiding Behind One Word</title>
+  <dc:creator>Shubham Sendre</dc:creator>
+  <link>https://shubhamsendre.github.io/posts/ai-bioprivacy-regulation/</link>
+  <description><![CDATA[ 
+
+
+
+
+<section id="one-word-two-problems" class="level2">
+<h2 class="anchored" data-anchor-id="one-word-two-problems">One Word, Two Problems</h2>
+<p>“Bioprivacy” sounds like it should mean one thing: keeping biological data private. In practice, the term is doing double duty for two problems that share a prefix and not much else.</p>
+<p><strong>Problem one</strong> is the one most people mean by default: your genome, your clinical records, your multi-omic data — kept out of the wrong hands, used only with consent, not re-identifiable after the fact. This is <a href="https://lifebit.ai/">Lifebit</a>’s territory — federated analytics platforms that let researchers query biomedical data without ever moving it off the institution that holds it.</p>
+<p><strong>Problem two</strong> is newer and much stranger: AI is making it easier for <em>anyone</em> to design a dangerous biological agent, and the “privacy” question flips — it’s not about protecting an individual’s data, it’s about restricting who can access AI-derived biological capability at all. This is what <a href="https://www.twentytwo.bio/">TwentyTwo</a> was built for, before <a href="https://blog.latch.bio/p/latchbio-acquires-twentytwo-to-form">LatchBio acquired it in June 2026</a> to form Latch Biosecurity.</p>
+<p>Both get called “AI bioprivacy.” Both are being shaped by AI in ways that are outrunning regulation. Worth looking at them side by side, because the implementation playbooks — and the regulatory gaps — are almost mirror images of each other.</p>
+<hr>
+</section>
+<section id="problem-one-genomic-data-that-cant-be-anonymized" class="level2">
+<h2 class="anchored" data-anchor-id="problem-one-genomic-data-that-cant-be-anonymized">Problem One: Genomic Data That Can’t Be Anonymized</h2>
+<p>Genomic data breaks the standard privacy toolkit in a specific way: you cannot irreversibly anonymize it. A hashed email address is genuinely useless without the key. A genome is not — it is inherently re-identifying, because it’s unique to you, shared in degraded form with every blood relative, and increasingly matchable against public genealogy databases even after names and dates are stripped out. <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC12673624/">Research on AI and genomic privacy</a> notes that AI systems can reconstruct identity or infer sensitive attributes from “anonymized” genomic datasets through linkage and model-inversion attacks — the anonymization was never as durable as it looked.</p>
+<p>That’s the problem Lifebit’s platform is built around, and their published <a href="https://lifebit.ai/blog/how-to-ensure-genomic-data-privacy/">“6-Step Guide to Genomic Data Privacy”</a> is a reasonably complete snapshot of what an implementation actually looks like in 2026:</p>
+<ol type="1">
+<li><strong>Audit the data landscape</strong> — inventory every genomic data store, classify by sensitivity, score risk.</li>
+<li><strong>Federate instead of centralize</strong> — “bring compute to data”: analysis executes at the site holding the data, not after the data has been copied out. This is also a direct answer to jurisdictional data-residency rules, since the data never crosses a border in the first place.</li>
+<li><strong>Layer technical controls</strong> — AES-256 at rest, TLS 1.3 in transit, role-based access with MFA and time-limited tokens, differential privacy and k-anonymity on top of de-identification, and secure compute environments that block raw data downloads entirely.</li>
+<li><strong>Govern access formally</strong> — a Data Access Committee, standardized request workflows, and consent tracked as a living record rather than a one-time checkbox.</li>
+<li><strong>Automate compliance monitoring</strong> — an “airlock” that inspects every query result for re-identification risk <em>before</em> it’s released, plus real-time anomaly alerts and tamper-proof audit logs.</li>
+<li><strong>Keep regulatory documentation current</strong> — compliance matrices mapped to HIPAA, GDPR, and FedRAMP, incident response playbooks, scheduled penetration testing.</li>
+</ol>
+<p>The federated model deserves the emphasis it gets. Lifebit describes it elsewhere as <a href="https://lifebit.ai/blog/why-a-federated-analytics-platform-is-the-ultimate-data-peace-treaty/">a “peace treaty”</a> between institutions that want to collaborate but are structurally unable to hand raw data to each other — hospitals bound by patient consent scope, biobanks bound by national data-residency law, pharma bound by IP concerns. Centralized-policy, decentralized-execution sidesteps all three: only summary statistics leave the firewall, and disclosure traps (like refusing to return results for cells with fewer than five individuals) stop small-group queries from becoming de-facto re-identification.</p>
+<p>None of this is exotic. Differential privacy, secure enclaves, and federated learning are established techniques — a recent scoping review of <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC13527024/">privacy-enhancing technologies for biomedical AI</a> rates federated learning as well-suited to regulatory alignment but vulnerable to gradient-reconstruction attacks without secure aggregation, and homomorphic encryption as strong but 10×–1000× slower than plaintext — fine for batch genomic analytics, unworkable for anything real-time. The honest summary: every privacy-enhancing technique buys privacy by spending either utility, latency, or infrastructure complexity. Nobody gets all three for free, and Lifebit’s stack is best read as a set of pragmatic trade-off choices, not a solved problem.</p>
+<section id="the-part-regulation-hasnt-caught-up-to" class="level3">
+<h3 class="anchored" data-anchor-id="the-part-regulation-hasnt-caught-up-to">The Part Regulation Hasn’t Caught Up To</h3>
+<p>Here’s where it gets genuinely unresolved. GDPR and CCPA both center on a “right to be forgotten” — but that right assumes data lives somewhere as a record that can be located and deleted. Once genomic data has been used to train a model, it isn’t a record anymore — it’s embedded in the model’s parameters. <a href="https://law.stanford.edu/2026/04/22/why-ai-cannot-forget-genomic-data/">Stanford Law’s analysis of this problem</a> puts it plainly: deleting the original file doesn’t remove the learned pattern, and “it remains unclear how the right to be forgotten should apply to internal model parameters that encode learned patterns.”</p>
+<p>Machine unlearning is the proposed technical fix, and it runs into a three-way tension: speed, privacy, and fairness pull against each other, because removing one person’s data point from a trained model can distort the statistics the model relies on for everyone else in that person’s demographic group — especially in a genomic context where population structure is the whole point. And genomic data is <em>familial</em> — it belongs to you and, in degraded form, to every blood relative you have. If one sibling consents to having their genome used and another demands deletion, individual-rights law has no clean answer, because the data point in question isn’t cleanly individual to begin with. This is the argument for moving toward collective or familial privacy rights rather than purely individual ones — a genuinely open regulatory question, not a solved one.</p>
+<hr>
+</section>
+</section>
+<section id="problem-two-when-bioprivacy-means-restricting-capability-not-protecting-data" class="level2">
+<h2 class="anchored" data-anchor-id="problem-two-when-bioprivacy-means-restricting-capability-not-protecting-data">Problem Two: When “Bioprivacy” Means Restricting Capability, Not Protecting Data</h2>
+<p>TwentyTwo’s framing is almost the inverse. The risk isn’t that someone’s biological data leaks — it’s that AI has collapsed the expertise barrier that used to make engineering a dangerous pathogen a nation-state-scale undertaking. Per their <a href="https://www.ycombinator.com/companies/twentytwo">Y Combinator profile</a>, the founding premise is blunt: “AI is making biology easy to engineer. Life-saving drugs and therapies are accelerating, but so is the ability for bad actors to create a pandemic.” The acquisition announcement from LatchBio frames the company’s job as building systems that can “distinguish [the line between legitimate and malicious use] and apply safeguards or grant capabilities accordingly” — because that line is shifting from nation-states toward individuals as the tooling gets more accessible.</p>
+<p>Concretely, this cashes out as <strong>synthetic nucleic acid order screening</strong> — the checkpoint where someone orders a custom DNA sequence from a synthesis provider. Screening has always had two layers: sequence screening (does this match a regulated pathogen database?) and legitimacy screening (does this customer have a real reason to order it?). The second layer has historically been the weak one, because it’s expensive: a <a href="https://www.frontiersin.org/journals/bioengineering-and-biotechnology/articles/10.3389/fbioe.2026.1819556/full">2026 Frontiers evaluation of AI-assisted legitimacy screening</a> puts manual verification at roughly £73 per flagged order — too costly to apply broadly.</p>
+<p>The same study benchmarked LLMs (Claude Sonnet 4, Gemini 2.5 Pro, Grok 4, and others) on five verification tasks — institutional affiliation, institution type, email domain, sanctions-list screening, and searching for relevant prior work — using web search plus specialized tools like a sanctions-list API, Europe PMC, and ORCID. Gemini 2.5 Pro with tool access hit 89.8% accuracy against a 79.7% human baseline, at roughly <strong>$1.18 per customer including human review — about 10x cheaper than the ~$14 manual process</strong>. The paper names TwentyTwo and a peer, Aclid, explicitly as commercial actors building this category. TwentyTwo’s own materials describe the broader product as AI agents combined with traditional intelligence sources that assemble background checks “in minutes” with a complete audit trail for the human who makes the final call, plus biosurveillance work reportedly spanning <a href="https://www.ycombinator.com/companies/twentytwo">27 U.S. sites monitoring more than 13 million people</a> and AI biosecurity evaluations that frontier AI labs have adopted.</p>
+<p>The point isn’t the specific numbers — it’s the shape of the problem. Cheap, accurate AI screening is what makes universal legitimacy checks economically viable for the first time. That’s a genuine capability win. It’s also a new single point of failure: the screening model itself becomes the thing an adversary wants to fool, and there’s no established regulatory framework yet for auditing an AI system that’s making go/no-go decisions on which DNA sequences ship.</p>
+<hr>
+</section>
+<section id="where-regulation-actually-stands" class="level2">
+<h2 class="anchored" data-anchor-id="where-regulation-actually-stands">Where Regulation Actually Stands</h2>
+<p>Neither problem has settled regulatory footing, and they’re being pulled by different bodies of law.</p>
+<p><strong>On the data-privacy side</strong>, the <a href="https://artificialintelligenceact.eu/annex/3/">EU AI Act</a> classifies biometric categorization and identification as high-risk uses requiring risk management, data governance, and human oversight — but its Annex III high-risk obligations were pushed back to <strong>December 2, 2027</strong> in a May 2026 agreement between Parliament and Council, so the binding compliance clock hasn’t actually started yet. GDPR still governs the underlying genomic data as a special category, but as covered above, it wasn’t written with model parameters in mind, and nobody has closed that gap.</p>
+<p><strong>On the biosecurity side</strong>, there’s essentially no equivalent statutory framework yet — synthetic nucleic acid screening is largely governed by voluntary industry standards and procurement requirements (e.g., US federal contracts increasingly requiring it) rather than binding law. That’s part of why commercial screening infrastructure like TwentyTwo/Aclid is filling the gap ahead of regulation rather than in response to it — the frontier AI labs adopting these evaluations are doing so voluntarily, not because a regulator requires it.</p>
+<p>The throughline: in both cases, the technology (federated compute, differential privacy, LLM-based screening) is arguably ahead of the law that’s supposed to govern it. Lifebit’s implementation guide and TwentyTwo’s screening pipeline are both, in effect, private governance filling a gap that public regulation hasn’t caught up to — which is a reasonable stopgap, but not a substitute for the harder legal questions (familial consent, model unlearning, mandatory screening standards) that only legislatures and courts can actually resolve.</p>
+<hr>
+</section>
+<section id="sources" class="level2">
+<h2 class="anchored" data-anchor-id="sources">Sources</h2>
+<ul>
+<li><a href="https://www.twentytwo.bio/">TwentyTwo — Biosecurity for Life Sciences</a></li>
+<li><a href="https://www.ycombinator.com/companies/twentytwo">TwentyTwo | Y Combinator</a></li>
+<li><a href="https://blog.latch.bio/p/latchbio-acquires-twentytwo-to-form">LatchBio acquires TwentyTwo to form Latch Biosecurity</a></li>
+<li><a href="https://www.frontiersin.org/journals/bioengineering-and-biotechnology/articles/10.3389/fbioe.2026.1819556/full">Evaluating AI-assisted customer verification for synthetic nucleic acid screening — Frontiers</a></li>
+<li><a href="https://lifebit.ai/blog/how-to-ensure-genomic-data-privacy/">Lifebit: How To Ensure Genomic Data Privacy — 6-Step Guide</a></li>
+<li><a href="https://lifebit.ai/blog/enabling-genomic-revolution-genomic-data-privacy/">Lifebit: Genomic Data Privacy — Enabling a Genomic Revolution</a></li>
+<li><a href="https://lifebit.ai/blog/why-a-federated-analytics-platform-is-the-ultimate-data-peace-treaty/">Lifebit: Why a Federated Analytics Platform is the Ultimate Data Peace Treaty</a></li>
+<li><a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC12673624/">Artificial intelligence and genomic data privacy: Balancing innovation with security — NCBI</a></li>
+<li><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC13527024/">Safeguarding biomedical AI: privacy-enhancing technologies scoping review — PMC</a></li>
+<li><a href="https://law.stanford.edu/2026/04/22/why-ai-cannot-forget-genomic-data/">Why AI Cannot Forget Genomic Data — Stanford Law School</a></li>
+<li><a href="https://artificialintelligenceact.eu/annex/3/">EU AI Act, Annex III: High-Risk AI Systems</a></li>
+<li><a href="https://www.biometricupdate.com/202605/eu-pushes-ai-act-deadlines-for-high-risk-systems-including-biometrics">EU pushes AI Act deadlines for high-risk systems, including biometrics — Biometric Update</a></li>
+</ul>
+
+
+</section>
+
+ ]]></description>
+  <category>bioprivacy</category>
+  <category>biosecurity</category>
+  <category>genomics</category>
+  <category>ai-regulation</category>
+  <category>privacy</category>
+  <guid>https://shubhamsendre.github.io/posts/ai-bioprivacy-regulation/</guid>
+  <pubDate>Mon, 14 Sep 2026 00:00:00 GMT</pubDate>
+</item>
+<item>
+  <title>Annotating Cell Types: CellTypist, Marker Genes, and an LLM, Compared Honestly</title>
+  <dc:creator>Shubham Sendre</dc:creator>
+  <link>https://shubhamsendre.github.io/posts/scrna-annotation/draft_v1.html</link>
+  <description><![CDATA[ 
+
+
+
+
+<section id="what-this-is-and-isnt" class="level2">
+<h2 class="anchored" data-anchor-id="what-this-is-and-isnt">What This Is (and Isn’t)</h2>
+<p>Once you’ve clustered a single-cell RNA-seq dataset, you’re left with the same question every time: <strong>what is cluster 4, actually?</strong> This post walks through three ways to answer that — a reference-based classifier (<a href="https://www.celltypist.org/">CellTypist</a>), classical marker-gene scoring, and an LLM reading each cluster’s top differentially expressed genes — run on the same dataset, so their agreements and disagreements are directly comparable.</p>
+<p>It is <strong>not</strong> a benchmark paper. One dataset, nine clusters, no ground-truth FACS labels to score against — just three legitimate methods, run side by side, with an honest look at where they line up and where the disagreement is actually informative rather than a bug.</p>
+<hr>
+</section>
+<section id="the-dataset-pbmc3k" class="level2">
+<h2 class="anchored" data-anchor-id="the-dataset-pbmc3k">The Dataset: PBMC3k</h2>
+<p><a href="https://support.10xgenomics.com/single-cell-gene-expression/datasets/1.1.0/pbmc3k">PBMC3k</a> is 10x Genomics’ public demo dataset — 2,700 peripheral blood mononuclear cells, sequenced with an early 10x Chromium chemistry, and the same dataset the canonical <a href="https://scanpy.readthedocs.io/en/stable/tutorials/basics/clustering.html">Scanpy PBMC3k tutorial</a> uses. It’s small, public, and has been independently annotated by enough people that its expected cell types (T cell subsets, B cells, monocytes, NK cells, dendritic cells, platelets) are well established — which makes it a reasonable dataset to sanity-check three annotation methods against, even without a formal ground truth.</p>
+<p>Standard preprocessing: filter cells with fewer than 200 genes and genes in fewer than 3 cells, drop cells with more than 20% mitochondrial reads, normalize to 10,000 counts and log1p-transform, select the top 2,000 highly variable genes, PCA to 50 components, and Leiden clustering at resolution 1.0. This produced <strong>2,698 cells across 9 clusters</strong>.</p>
+<hr>
+</section>
+<section id="method-1-reference-based-annotation-with-celltypist" class="level2">
+<h2 class="anchored" data-anchor-id="method-1-reference-based-annotation-with-celltypist">Method 1: Reference-Based Annotation with CellTypist</h2>
+<p><a href="https://www.celltypist.org/">CellTypist</a> is a logistic-regression classifier trained on large, curated reference atlases — here, the <code>Immune_All_Low</code> model, trained for fine-grained immune cell subtypes. It predicts a label <strong>per cell</strong>, plus a probability for every candidate label, and optionally runs <strong>majority voting</strong>: given an independent over-clustering (Leiden, in this case), it assigns the <em>cluster’s</em> dominant per-cell label to every cell in that cluster, smoothing out noisy individual calls.</p>
+<p>Both outputs matter for different reasons: the per-cell labels reveal within-cluster heterogeneity a single cluster-level name would hide; the majority-voted labels give a clean, one-label-per-cluster summary that’s easier to report and compare against the other two methods.</p>
+<hr>
+</section>
+<section id="method-2-marker-gene-scoring-the-classical-baseline" class="level2">
+<h2 class="anchored" data-anchor-id="method-2-marker-gene-scoring-the-classical-baseline">Method 2: Marker-Gene Scoring — the Classical Baseline</h2>
+<p>No training, no reference atlas — just canonical PBMC marker gene sets (<code>CD3D</code>/<code>CD3E</code> for T cells, <code>MS4A1</code>/<code>CD79A</code> for B cells, <code>GNLY</code>/<code>NKG7</code> for NK cells, <code>CD14</code>/<code>LYZ</code> for classical monocytes, <code>FCGR3A</code>/<code>MS4A7</code> for non-classical monocytes, <code>FCER1A</code>/<code>CST3</code> for dendritic cells, <code>PPBP</code>/<code>PF4</code> for platelets, and CD8-specific markers for cytotoxic T cells). Each cluster’s mean <code>sc.tl.score_genes</code> score is computed against every marker set, and the cluster is assigned whichever set scores highest.</p>
+<p>This is the annotation equivalent of a hand-tuned rule — transparent and fast, but only as good as the marker panel you wrote down in advance. It can’t discover a cell type you didn’t already have a gene list for.</p>
+<hr>
+</section>
+<section id="method-3-an-llm-reading-marker-genes" class="level2">
+<h2 class="anchored" data-anchor-id="method-3-an-llm-reading-marker-genes">Method 3: An LLM Reading Marker Genes</h2>
+<p>For each cluster, <code>sc.tl.rank_genes_groups</code> (Wilcoxon test) produces its top 10 differentially expressed genes. Those gene symbols — nothing else, no cluster statistics, no prior labels — are handed to an LLM with a fixed prompt asking for the single most likely PBMC cell type:</p>
+<blockquote class="blockquote">
+<p><em>“Given the top differentially expressed marker genes for one cluster, return the single most likely immune cell type… Top marker genes (highest to lowest significance): {genes}”</em></p>
+</blockquote>
+<p>Two choices matter for reproducibility here: the model is pinned to a specific version and called with <code>temperature=0</code>, so the same marker list produces the same label on every rerun rather than drifting between calls; and every prompt/response pair is logged and cached to disk, so re-running the offline script during iteration doesn’t re-call (or re-bill) the API for clusters that haven’t changed.</p>
+<p>The appeal is obvious: <strong>zero marker-panel curation</strong> — the model brings its own prior knowledge of immunology instead of a hand-written gene list. The risk is just as real: an LLM can produce a fluent, confident, <em>wrong</em> label with no calibrated uncertainty attached, and it has no way to say “I don’t recognize this” the way a low CellTypist probability can.</p>
+<hr>
+</section>
+<section id="try-it-interactive-comparison" class="level2">
+<h2 class="anchored" data-anchor-id="try-it-interactive-comparison">Try It: Interactive Comparison</h2>
+<p>The panel below is a full <a href="https://marimo.io">marimo</a> notebook running <strong>in your browser</strong> via WebAssembly (Pyodide) — no server, no Python install on your end.</p>
+<p>One honest caveat on how this is built: <strong>none of <code>scanpy</code>, <code>anndata</code>, or CellTypist’s scikit-learn backend are verified to run inside a browser’s WASM sandbox</strong>, so all three methods above were run once, offline, and their outputs — UMAP coordinates, per-cell and per-cluster labels, confidence scores, the agreement statistics — were saved as small CSV/JSON files. What <em>is</em> genuinely live in the notebook: recoloring the UMAP by any of the four label sets, filtering cells by CellTypist confidence, and browsing the per-cluster table — all pure pandas/NumPy/Matplotlib, recomputed in your browser every time you touch a control.</p>
+<iframe src="notebook_wasm/index.html" width="100%" height="1500" style="border: 1px solid #ddd; border-radius: 6px;" loading="lazy">
+</iframe>
+<hr>
+</section>
+<section id="where-the-methods-agree-and-where-they-dont" class="level2">
+<h2 class="anchored" data-anchor-id="where-the-methods-agree-and-where-they-dont">Where the Methods Agree — and Where They Don’t</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Cluster</th>
+<th>Cells</th>
+<th>Marker-gene baseline</th>
+<th>CellTypist (majority)</th>
+<th>Agreement</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>0</td>
+<td>880</td>
+<td>T cells</td>
+<td>Tcm/Naive helper T cells</td>
+<td>Broad match</td>
+</tr>
+<tr class="even">
+<td>1</td>
+<td>314</td>
+<td>T cells</td>
+<td>Tcm/Naive helper T cells</td>
+<td>Broad match</td>
+</tr>
+<tr class="odd">
+<td>2</td>
+<td>347</td>
+<td>B cells</td>
+<td>B cells</td>
+<td><strong>Exact match</strong></td>
+</tr>
+<tr class="even">
+<td>3</td>
+<td>491</td>
+<td>Monocytes (CD14+)</td>
+<td>Classical monocytes</td>
+<td><strong>Exact match</strong></td>
+</tr>
+<tr class="odd">
+<td>4</td>
+<td>445</td>
+<td>NK cells</td>
+<td>CD16+ NK cells</td>
+<td>Broad match</td>
+</tr>
+<tr class="even">
+<td>5</td>
+<td>159</td>
+<td>Monocytes (FCGR3A+)</td>
+<td>Non-classical monocytes</td>
+<td><strong>Exact match</strong></td>
+</tr>
+<tr class="odd">
+<td>6</td>
+<td>34</td>
+<td>Dendritic cells</td>
+<td>DC</td>
+<td><strong>Exact match</strong></td>
+</tr>
+<tr class="even">
+<td>7</td>
+<td>15</td>
+<td>Platelets</td>
+<td>Megakaryocytes/platelets</td>
+<td><strong>Exact match</strong></td>
+</tr>
+<tr class="odd">
+<td>8</td>
+<td>13</td>
+<td>CD8 T cells</td>
+<td>Tem/Trm cytotoxic T cells</td>
+<td>Broad match</td>
+</tr>
+</tbody>
+</table>
+<p>At the broad cell-type level, the two methods agree on <strong>all nine clusters</strong>. Every disagreement is a resolution mismatch, not a contradiction: the marker-gene baseline’s fixed panel names a broad category (“T cells,” “NK cells”), while CellTypist’s finer reference model names a specific subtype within it (“Tcm/Naive helper T cells,” “CD16+ NK cells”). That’s the expected failure mode of a hand-picked marker panel — not wrong, just lower resolution than a model trained on a much larger labeled reference.</p>
+<section id="how-much-does-celltypists-per-cell-typing-agree-with-the-clusters-themselves" class="level3">
+<h3 class="anchored" data-anchor-id="how-much-does-celltypists-per-cell-typing-agree-with-the-clusters-themselves">How much does CellTypist’s per-cell typing agree with the clusters themselves?</h3>
+<p>CellTypist assigns every cell a label independently — it never sees the Leiden partition. Comparing its raw per-cell labels against the Leiden clusters with the <strong>Adjusted Rand Index</strong> gives <code>0.449</code>. That’s meaningfully below 1.0, and it should be: the confusion matrix in the notebook shows CellTypist splitting single Leiden clusters (especially cluster 0, the largest T-cell cluster) across several related subtypes — <code>Tcm/Naive helper T cells</code>, <code>Tem/Effector helper T cells</code>, <code>Treg</code>, <code>MAIT cells</code> — rather than just re-deriving the same 9 groups under a different name. A majority-voted, one-label-per-cluster summary (like the table above) is convenient, but it genuinely erases that heterogeneity.</p>
+<hr>
+</section>
+</section>
+<section id="discussion-when-to-trust-which" class="level2">
+<h2 class="anchored" data-anchor-id="discussion-when-to-trust-which">Discussion: When to Trust Which</h2>
+<ul>
+<li><strong>Broad-category calls are cheap to get right; subtype calls are where methods diverge.</strong> If you only need “lymphocyte vs.&nbsp;myeloid,” any of these three methods will likely agree. Subtype-level annotation is where the choice of method — and its reference panel’s resolution — actually matters.</li>
+<li><strong>CellTypist’s confidence scores are directly actionable.</strong> Because it outputs a real probability per cell, you can filter to “only the calls I’m confident in” and manually review the rest — see the confidence slider in the notebook above. Neither the marker-gene baseline nor a plain LLM label comes with a comparably calibrated uncertainty signal.</li>
+<li><strong>LLM annotation trades curation cost for hallucination risk.</strong> No marker panel to write and maintain, but also no guarantee the label is grounded in anything beyond the model’s prior — and unlike CellTypist, it can’t natively flag “this doesn’t look like any cell type I know.” Treat it as a fast first pass to be checked, not a final call.</li>
+<li><strong>None of this generalizes across tissue or disease state without re-checking.</strong> PBMC3k is about as friendly a dataset as scRNA-seq annotation gets — a well-studied tissue with a mature reference model. Solid tumor or disease-state datasets, where CellTypist’s training distribution is a worse match and marker panels are less standardized, will show more disagreement between all three methods than this post does.</li>
+</ul>
+<hr>
+</section>
+<section id="reproducing-this" class="level2">
+<h2 class="anchored" data-anchor-id="reproducing-this">Reproducing This</h2>
+<ul>
+<li><strong>Offline stage</strong> (<code>generate_artifacts.py</code>): downloads PBMC3k, runs the standard Scanpy preprocessing/clustering pipeline, runs CellTypist (<code>Immune_All_Low</code> model with majority voting), scores the marker-gene baseline, calls an LLM per cluster for the third annotation, computes the agreement statistics, and writes the small artifacts this notebook loads. The LLM step reads its API key from the <code>ANTHROPIC_API_KEY</code> environment variable only — never hardcode it — and caches every response to disk so reruns don’t re-call the API for unchanged clusters.</li>
+<li><strong>Interactive stage</strong> (<code>notebook.py</code>): the marimo notebook above. Needs only <code>numpy</code>, <code>pandas</code>, <code>matplotlib</code>, and <code>marimo</code> — all WASM-compatible, which is why it can ship as a static page with no server behind it.</li>
+</ul>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># offline (heavy env: scanpy, anndata, celltypist, anthropic)</span></span>
+<span id="cb1-2"><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">export</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">ANTHROPIC_API_KEY</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>...</span>
+<span id="cb1-3"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">conda</span> run <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">-n</span> scanpy python generate_artifacts.py</span>
+<span id="cb1-4"></span>
+<span id="cb1-5"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># interactive notebook, locally</span></span>
+<span id="cb1-6"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">conda</span> run <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">-n</span> quarto-blog marimo edit notebook.py</span>
+<span id="cb1-7"></span>
+<span id="cb1-8"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># export the interactive layer to a static, browser-runnable bundle</span></span>
+<span id="cb1-9"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">conda</span> run <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">-n</span> quarto-blog marimo export html-wasm notebook.py <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">-o</span> notebook_wasm <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">--mode</span> run</span></code></pre></div></div>
+<hr>
+<p><em>Questions about the pipeline or the comparison? Connect on <a href="https://linkedin.com/in/shubhamsendre">LinkedIn</a>.</em></p>
+
+
+</section>
+
+ ]]></description>
+  <category>scrna-seq</category>
+  <category>celltypist</category>
+  <category>llm</category>
+  <category>annotation</category>
+  <category>marimo</category>
+  <guid>https://shubhamsendre.github.io/posts/scrna-annotation/draft_v1.html</guid>
+  <pubDate>Sun, 13 Sep 2026 00:00:00 GMT</pubDate>
+</item>
+<item>
+  <title>Segmenting Nuclei in H&amp;E Images: A Morphometry Pipeline, Not a Diagnosis</title>
+  <dc:creator>Shubham Sendre</dc:creator>
+  <link>https://shubhamsendre.github.io/posts/he-nuclei-segmentation/draft_v1.html</link>
+  <description><![CDATA[ 
+
+
+
+
+<section id="what-this-is-and-isnt" class="level2">
+<h2 class="anchored" data-anchor-id="what-this-is-and-isnt">What This Is (and Isn’t)</h2>
+<p>This post is about <strong>turning a microscopy image into a measurement table</strong> — segment the nuclei in an H&amp;E-stained tissue patch, quantify them (count, area, shape), and score how good that segmentation actually is against expert ground truth.</p>
+<p>It is <strong>not</strong> a diagnostic tool. I’m a bioinformatics engineer, not a pathologist. Everything here is engineering: given a segmentation, how do you honestly measure whether it’s any good, and how much does the choice of method actually matter?</p>
+<p>The short answer, with numbers to back it up: a <strong>lot</strong>.</p>
+<hr>
+</section>
+<section id="the-task-instance-segmentation-not-just-find-the-nuclei" class="level2">
+<h2 class="anchored" data-anchor-id="the-task-instance-segmentation-not-just-find-the-nuclei">The Task: Instance Segmentation, Not Just “Find the Nuclei”</h2>
+<p>Nuclei in a dense tissue patch touch and overlap. The hard part isn’t distinguishing tissue from background — simple intensity thresholding gets you most of the way there. The hard part is <strong>separating individual nuclei that are touching</strong>, which is what turns this into an <em>instance</em> segmentation problem rather than a semantic one.</p>
+<p>That distinction matters for evaluation too. A method can get the foreground region almost perfectly right while still merging a cluster of six nuclei into one blob — which is a serious error for any downstream measurement (cell counts, density, morphology), but invisible to a pixel-accuracy or plain Dice score. So this post scores both.</p>
+<hr>
+</section>
+<section id="two-methods-scored-honestly" class="level2">
+<h2 class="anchored" data-anchor-id="two-methods-scored-honestly">Two Methods, Scored Honestly</h2>
+<p><strong>Classical: Otsu threshold → distance transform → watershed.</strong> Threshold the image, compute a distance-to-background map, find local maxima as seed points, and let watershed grow regions from those seeds. No training, no learned features — just intensity and geometry.</p>
+<p><strong>Deep learning: StarDist</strong>, using the pretrained <code>2D_versatile_he</code> model (trained specifically on H&amp;E-stained nuclei — no fine-tuning done here). StarDist predicts star-convex polygon shapes per nucleus directly, which handles touching nuclei far more gracefully than a purely intensity-driven watershed.</p>
+<p><strong>Evaluation: AJI and Panoptic Quality, not pixel accuracy.</strong> <a href="https://doi.org/10.1109/TMI.2017.2677499">Aggregated Jaccard Index</a> and <a href="https://arxiv.org/abs/1801.00868">Panoptic Quality</a> are instance-aware — they penalize merged and split nuclei, not just boundary disagreement. I also report a plain foreground Dice score for reference, but it’s the weaker signal of the three.</p>
+<section id="results-on-4-monuseg-patches-256256-held-out-test-split" class="level3">
+<h3 class="anchored" data-anchor-id="results-on-4-monuseg-patches-256256-held-out-test-split">Results on 4 MoNuSeg patches (256×256, held-out test split)</h3>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Method</th>
+<th>AJI</th>
+<th>Panoptic Quality</th>
+<th>Dice (foreground)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>StarDist</strong></td>
+<td><strong>0.655</strong></td>
+<td><strong>0.642</strong></td>
+<td><strong>0.820</strong></td>
+</tr>
+<tr class="even">
+<td>Classical watershed</td>
+<td>0.387</td>
+<td>0.272</td>
+<td>0.638</td>
+</tr>
+</tbody>
+</table>
+<p>StarDist wins by a wide margin on every metric, and the gap is <em>largest</em> on Panoptic Quality — exactly the metric most sensitive to merge/split errors. Looking at the per-sample breakdown, the classical baseline’s failure mode is consistent: in dense clusters it over-segments, predicting far more instances than actually exist (92 predicted vs.&nbsp;39 ground-truth nuclei in one patch) because intensity-based watershed markers proliferate wherever the distance transform has a local wobble. That’s the concrete cost of not learning shape priors.</p>
+<p>None of this means classical watershed is useless — with a well-tuned marker distance it’s a legitimate, zero-training baseline for sparse, well-separated nuclei. It just doesn’t hold up on realistic tissue density.</p>
+<hr>
+</section>
+</section>
+<section id="try-it-interactive-notebook" class="level2">
+<h2 class="anchored" data-anchor-id="try-it-interactive-notebook">Try It: Interactive Notebook</h2>
+<p>The comparison above isn’t fixed — you can change the classical baseline’s parameters and watch its score move in real time. The panel below is a full <a href="https://marimo.io">marimo</a> notebook running <strong>in your browser</strong> via WebAssembly (Pyodide). No server, no Python installation on your end.</p>
+<p>One honest caveat on how this is built: <strong>StarDist’s segmentation runs on TensorFlow, which cannot execute inside a browser’s WASM sandbox.</strong> So the StarDist masks you see below were computed once, offline, and are loaded here as precomputed arrays. The classical watershed baseline, the morphometric plots, and the AJI/PQ/Dice scoring, however, are all <strong>genuinely live</strong> — scikit-image and SciPy run natively in Pyodide, so moving the slider actually re-segments the image in your browser.</p>
+<iframe src="notebook_wasm/index.html" width="100%" height="1400" style="border: 1px solid #ddd; border-radius: 6px;" loading="lazy">
+</iframe>
+<hr>
+</section>
+<section id="from-masks-to-measurements" class="level2">
+<h2 class="anchored" data-anchor-id="from-masks-to-measurements">From Masks to Measurements</h2>
+<p>The point of segmentation, in most real workflows, isn’t the mask itself — it’s what you can measure from it. Once nuclei are labeled, <code>regionprops</code> turns each one into a row of a table: area, perimeter, eccentricity, solidity, centroid. That table is the actual deliverable — it’s what feeds downstream statistics, not the colorful mask image.</p>
+<p>This is the throughline of the pipeline: <strong>image → instance mask → feature table → validated numbers</strong>, with the validation step (AJI/PQ against ground truth) treated as a first-class part of the pipeline rather than an afterthought.</p>
+<hr>
+</section>
+<section id="reproducing-this" class="level2">
+<h2 class="anchored" data-anchor-id="reproducing-this">Reproducing This</h2>
+<ul>
+<li><strong>Offline stage</strong> (<code>generate_artifacts.py</code>): fetches 4 patches from the <a href="https://huggingface.co/datasets/RationAI/MoNuSeg">MoNuSeg dataset</a> (CC-BY-NC-SA-4.0) via Hugging Face, runs StarDist inference, computes the classical baseline once, scores both against ground truth, and writes the small artifacts this notebook loads. Needs TensorFlow + StarDist — run it in its own environment.</li>
+<li><strong>Interactive stage</strong> (<code>notebook.py</code>): the marimo notebook above. Needs only <code>numpy</code>, <code>pandas</code>, <code>matplotlib</code>, <code>scikit-image</code>, <code>scipy</code> — all WASM-compatible, which is why it can ship as a static page.</li>
+</ul>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># offline (heavy env)</span></span>
+<span id="cb1-2"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">conda</span> run <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">-n</span> nuclei-seg python generate_artifacts.py</span>
+<span id="cb1-3"></span>
+<span id="cb1-4"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># interactive notebook, locally</span></span>
+<span id="cb1-5"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">conda</span> run <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">-n</span> quarto-blog marimo edit notebook.py</span>
+<span id="cb1-6"></span>
+<span id="cb1-7"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># export the interactive layer to a static, browser-runnable bundle</span></span>
+<span id="cb1-8"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">conda</span> run <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">-n</span> quarto-blog marimo export html-wasm notebook.py <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">-o</span> notebook_wasm <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">--mode</span> run</span></code></pre></div></div>
+<hr>
+<p><em>Questions about the pipeline or the metrics? Connect on <a href="https://linkedin.com/in/shubhamsendre">LinkedIn</a>.</em></p>
+
+
+</section>
+
+ ]]></description>
+  <category>pathology</category>
+  <category>segmentation</category>
+  <category>deep-learning</category>
+  <category>computer-vision</category>
+  <category>marimo</category>
+  <guid>https://shubhamsendre.github.io/posts/he-nuclei-segmentation/draft_v1.html</guid>
+  <pubDate>Sun, 12 Jul 2026 00:00:00 GMT</pubDate>
+</item>
+<item>
+  <title>RO-Crate and Nextflow: Making Your Pipeline Outputs FAIR and Reproducible</title>
+  <dc:creator>Shubham Sendre</dc:creator>
+  <link>https://shubhamsendre.github.io/posts/ro-crate-nextflow/draft_v1.html</link>
+  <description><![CDATA[ 
+
+
+
+
+<section id="the-problem-ro-crate-was-built-to-solve" class="level2">
+<h2 class="anchored" data-anchor-id="the-problem-ro-crate-was-built-to-solve">The Problem RO-Crate Was Built to Solve</h2>
+<p>A folder of pipeline outputs is opaque. Raw files sitting on a server answer none of the questions anyone actually needs answered:</p>
+<ul>
+<li>What tool produced this VCF? At what version?</li>
+<li>What input data was used? Are the checksums the same?</li>
+<li>Who ran this? When? On what infrastructure?</li>
+<li>Can I re-run it and get the same result?</li>
+</ul>
+<p>The bioinformatics community has tried to solve this before. Research Objects — the conceptual predecessor to RO-Crate — proposed bundling research materials with rich linked data metadata. The idea was sound. The adoption was not. The technology stack required (OWL ontologies, SPARQL, full RDF toolchains) was too steep for most working scientists and engineers.</p>
+<p>RO-Crate is the pragmatic successor. It was designed, as Soiland-Reyes et al.&nbsp;put it, to use <em>“just enough Linked Data”</em> — structured metadata that is machine-readable and semantically interoperable, but accessible to anyone who can write JSON<sup>1</sup>.</p>
+<hr>
+</section>
+<section id="what-ro-crate-actually-is" class="level2">
+<h2 class="anchored" data-anchor-id="what-ro-crate-actually-is">What RO-Crate Actually Is</h2>
+<p>An RO-Crate is a directory — any directory — with a single file added: <code>ro-crate-metadata.json</code>. That file uses <a href="https://json-ld.org/">JSON-LD</a> and <a href="https://schema.org">schema.org</a> vocabulary to describe what is in the directory, who created it, what software was involved, and how the contents relate to each other.</p>
+<p>JSON-LD is the key design choice here. It looks like ordinary JSON, which means any developer can read and write it without learning a new toolchain. But it carries semantic meaning: every field maps to a well-defined concept in an internationally agreed vocabulary. A <code>Person</code> entity in your metadata means the same thing as a <code>Person</code> in a Harvard data repository or a European health data space.</p>
+<p>The spec defines three types of entities:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Entity Type</th>
+<th>What It Describes</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Root Data Entity</strong></td>
+<td>The crate itself — the top-level research output</td>
+<td>The pipeline run directory</td>
+</tr>
+<tr class="even">
+<td><strong>Data Entities</strong></td>
+<td>Files and directories inside the crate</td>
+<td><code>results/annotated.vcf.gz</code>, <code>samplesheet.csv</code></td>
+</tr>
+<tr class="odd">
+<td><strong>Contextual Entities</strong></td>
+<td>Things referenced from outside</td>
+<td>A <code>Person</code>, a <code>SoftwareApplication</code>, an <code>Organisation</code></td>
+</tr>
+</tbody>
+</table>
+<p>The FAIR Guiding Principles<sup>2</sup> — Findable, Accessible, Interoperable, Reusable — are the stated goal. RO-Crate is the practical mechanism for achieving them without requiring semantic web expertise.</p>
+<hr>
+</section>
+<section id="two-levels-of-ro-crate-in-a-nextflow-context" class="level2">
+<h2 class="anchored" data-anchor-id="two-levels-of-ro-crate-in-a-nextflow-context">Two Levels of RO-Crate in a Nextflow Context</h2>
+<p>Before writing any JSON, it helps to understand that RO-Crate applies at two distinct levels in a Nextflow pipeline:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 16%">
+<col style="width: 45%">
+<col style="width: 38%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Level</th>
+<th>What It Describes</th>
+<th>When It Exists</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Pipeline-level</strong></td>
+<td>The workflow itself — purpose, authors, license, inputs, outputs</td>
+<td>Once per pipeline, committed to the repo</td>
+</tr>
+<tr class="even">
+<td><strong>Run-level</strong></td>
+<td>A specific execution — input files, parameters, container versions, timestamps</td>
+<td>Generated fresh per pipeline run</td>
+</tr>
+</tbody>
+</table>
+<p>Both are valid RO-Crates. They serve different purposes. The pipeline-level one makes your workflow a citable, discoverable artifact on WorkflowHub. The run-level one is your audit trail and reproducibility record.</p>
+<hr>
+</section>
+<section id="pipeline-level-ro-crate-describing-your-workflow" class="level2">
+<h2 class="anchored" data-anchor-id="pipeline-level-ro-crate-describing-your-workflow">Pipeline-Level RO-Crate: Describing Your Workflow</h2>
+<p>The pipeline-level <code>ro-crate-metadata.json</code> lives in the root of your repository. It describes your workflow as a <code>ComputationalWorkflow</code> — a scientific artifact with a name, authors, license, and formal descriptions of its inputs and outputs.</p>
+<section id="the-minimal-structure" class="level3">
+<h3 class="anchored" data-anchor-id="the-minimal-structure">The Minimal Structure</h3>
+<p>Every valid RO-Crate metadata file has two required entries in its <code>@graph</code>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb1-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb1-2">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@context"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"https://w3id.org/ro/crate/1.1/context"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb1-3">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@graph"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">[</span></span>
+<span id="cb1-4">    <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb1-5">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@id"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"ro-crate-metadata.json"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb1-6">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@type"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"CreativeWork"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb1-7">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"conformsTo"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span><span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@id"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"https://w3id.org/ro/crate/1.1"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">},</span></span>
+<span id="cb1-8">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"about"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span><span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@id"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"./"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span></span>
+<span id="cb1-9">    <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb1-10">    <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb1-11">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@id"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"./"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb1-12">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@type"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">[</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Dataset"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"ComputationalWorkflow"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">]</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb1-13">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"name"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"my-annotation-pipeline"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb1-14">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"description"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"A Nextflow pipeline for variant annotation using VEP, FastQC, and MultiQC."</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb1-15">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"license"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"MIT"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb1-16">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"version"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"1.0.0"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb1-17">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"programmingLanguage"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb1-18">        <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@id"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"https://w3id.org/workflowhub/workflow-ro-crate#nextflow"</span></span>
+<span id="cb1-19">      <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">},</span></span>
+<span id="cb1-20">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"author"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">[</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span><span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@id"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"#author-1"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">]</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb1-21">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"input"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">[</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span><span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@id"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"#input-samplesheet"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">]</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb1-22">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"output"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">[</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span><span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@id"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"#output-vcf"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">]</span></span>
+<span id="cb1-23">    <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span></span>
+<span id="cb1-24">  <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">]</span></span>
+<span id="cb1-25"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span></span></code></pre></div></div>
+<p>The first entry (<code>ro-crate-metadata.json</code>) is always the metadata descriptor — it points to <code>./</code> as its subject. The second entry (<code>./</code>) is the root dataset — your pipeline.</p>
+</section>
+<section id="adding-authors" class="level3">
+<h3 class="anchored" data-anchor-id="adding-authors">Adding Authors</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb2-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb2-2">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@id"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"#author-1"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb2-3">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@type"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Person"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb2-4">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"name"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Shubham Sendre"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb2-5">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"affiliation"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Invisibl Cloud Solutions Pvt. Ltd."</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb2-6">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"url"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"https://orcid.org/0000-0000-0000-0000"</span></span>
+<span id="cb2-7"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span></span></code></pre></div></div>
+<p>Use your ORCID as the <code>@id</code> if you have one — it makes the pipeline citable in academic contexts and is how WorkflowHub links pipeline authorship to your research identity.</p>
+</section>
+<section id="describing-inputs-and-outputs" class="level3">
+<h3 class="anchored" data-anchor-id="describing-inputs-and-outputs">Describing Inputs and Outputs</h3>
+<p><code>FormalParameter</code> entries are what make the pipeline machine-readable. WorkflowHub parses these to display pipeline interfaces:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb3-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb3-2">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@id"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"#input-samplesheet"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb3-3">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@type"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"FormalParameter"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb3-4">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"name"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"input"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb3-5">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"description"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Samplesheet CSV with sample IDs and paths to FASTQ files"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb3-6">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"encodingFormat"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"text/csv"</span></span>
+<span id="cb3-7"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span><span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb3-8"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb3-9">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@id"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"#output-vcf"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb3-10">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@type"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"FormalParameter"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb3-11">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"name"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"annotated_vcf"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb3-12">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"description"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"VEP-annotated VCF with functional consequence predictions"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb3-13">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"encodingFormat"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"text/tab-separated-values"</span></span>
+<span id="cb3-14"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span></span></code></pre></div></div>
+</section>
+<section id="referencing-software-dependencies" class="level3">
+<h3 class="anchored" data-anchor-id="referencing-software-dependencies">Referencing Software Dependencies</h3>
+<p>Use <a href="https://bio.tools">bio.tools</a> identifiers where they exist — they are the standard registry for bioinformatics tools and the identifiers WorkflowHub recognises:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb4-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb4-2">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@id"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"https://bio.tools/vep"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb4-3">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@type"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"SoftwareApplication"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb4-4">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"name"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Ensembl VEP"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb4-5">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"version"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"110.1"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb4-6">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"url"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"https://www.ensembl.org/vep"</span></span>
+<span id="cb4-7"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span></span></code></pre></div></div>
+<p>Add this to <code>hasPart</code> or <code>softwareRequirements</code> on the root Dataset node.</p>
+<hr>
+</section>
+</section>
+<section id="run-level-ro-crate-provenance-with-nf-prov" class="level2">
+<h2 class="anchored" data-anchor-id="run-level-ro-crate-provenance-with-nf-prov">Run-Level RO-Crate: Provenance with nf-prov</h2>
+<p>The pipeline-level RO-Crate describes your workflow as a static artifact. Run-level provenance captures what actually happened in a specific execution.</p>
+<p>This is where the W3C PROV data model<sup>3</sup> becomes relevant. PROV defines a standard vocabulary for describing entities (data), activities (processes), and agents (people/software) and the relationships between them. The <code>nf-prov</code> plugin translates Nextflow execution events into a PROV-conformant RO-Crate automatically.</p>
+<section id="enabling-nf-prov" class="level3">
+<h3 class="anchored" data-anchor-id="enabling-nf-prov">Enabling nf-prov</h3>
+<p>Add to your <code>nextflow.config</code>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode groovy code-with-copy"><code class="sourceCode groovy"><span id="cb5-1">plugins <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb5-2">  id <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'nf-prov@1.2.2'</span></span>
+<span id="cb5-3"><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span></span>
+<span id="cb5-4"></span>
+<span id="cb5-5">prov <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb5-6">  enabled <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">true</span></span>
+<span id="cb5-7">  formats <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb5-8">    rocrate <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb5-9">      file <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">${</span>params<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span>outdir<span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">}</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">/pipeline_info/ro-crate-metadata.json"</span></span>
+<span id="cb5-10">    <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span></span>
+<span id="cb5-11">  <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span></span>
+<span id="cb5-12"><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span></span></code></pre></div></div>
+</section>
+<section id="what-gets-captured-per-run" class="level3">
+<h3 class="anchored" data-anchor-id="what-gets-captured-per-run">What Gets Captured Per Run</h3>
+<p>After every pipeline execution, <code>nf-prov</code> writes an <code>ro-crate-metadata.json</code> into your output directory that records:</p>
+<ul>
+<li>Workflow version (exact git commit or tag)</li>
+<li>Input files with checksums (MD5/SHA256)</li>
+<li>Output files with checksums and sizes</li>
+<li>Start and end timestamps per process</li>
+<li>Container image IDs used per process</li>
+<li>Full resolved parameter set at runtime</li>
+</ul>
+<p>A fragment of what the run record looks like:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb6-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb6-2">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@id"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"#run-2026-04-15"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb6-3">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@type"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"CreateAction"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb6-4">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"instrument"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span><span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@id"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"main.nf"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">},</span></span>
+<span id="cb6-5">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"startTime"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"2026-04-15T09:23:11Z"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb6-6">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"endTime"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"2026-04-15T11:47:32Z"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb6-7">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"object"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">[</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span><span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@id"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"inputs/samplesheet.csv"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">]</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb6-8">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"result"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">[</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span><span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@id"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"results/annotated.vcf.gz"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">]</span></span>
+<span id="cb6-9"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span></span></code></pre></div></div>
+<p>This is the difference between <em>“I ran the pipeline”</em> and <em>“I can prove exactly what ran, on what input, at what time, and what came out.”</em></p>
+<hr>
+</section>
+</section>
+<section id="publishing-to-workflowhub" class="level2">
+<h2 class="anchored" data-anchor-id="publishing-to-workflowhub">Publishing to WorkflowHub</h2>
+<p><a href="https://workflowhub.eu/">WorkflowHub</a> is the community registry for FAIR scientific workflows. It reads your pipeline-level <code>ro-crate-metadata.json</code> directly to:</p>
+<ul>
+<li>Display pipeline metadata, authors, description, and inputs/outputs</li>
+<li>Assign a <strong>DOI</strong> to your pipeline version, making it citable in publications</li>
+<li>Link to bio.tools and Bioschemas entries for referenced software</li>
+<li>Index your pipeline for discoverability across the research community</li>
+</ul>
+<p>Registering is straightforward: provide a link to your repository or upload a zip, and WorkflowHub validates your RO-Crate and creates a landing page with a persistent identifier.</p>
+<p>A DOI-backed WorkflowHub entry is a concrete portfolio artifact — a versioned, citable record with your name on it that you can link from a CV or LinkedIn profile.</p>
+<hr>
+</section>
+<section id="why-this-matters-beyond-good-practice" class="level2">
+<h2 class="anchored" data-anchor-id="why-this-matters-beyond-good-practice">Why This Matters Beyond Good Practice</h2>
+<p><strong>Reproducibility is shifting from optional to expected.</strong> Journals and funders increasingly require that computational analyses be reproducible. An <code>nf-prov</code> RO-Crate is concrete evidence — not “here’s the code”, but “here’s the exact execution with checksums on every input and output.”</p>
+<p><strong>External delivery has a provenance question.</strong> Delivering pipeline outputs to pharma companies, hospitals, or research institutes often comes with the question: <em>can you prove what ran?</em> An RO-Crate run record is a ready-made answer that doesn’t require trust — it’s self-describing and verifiable.</p>
+<p><strong>Regulated environments are where this becomes load-bearing.</strong> Trusted Research Environments (TREs) — secure compute environments for sensitive clinical data used in NHS, UK Biobank, and EU health data spaces — require data provenance and audit trails by design. RO-Crate is one of the standards being evaluated and adopted to satisfy those requirements. That last point is where this gets genuinely interesting, and it’s where Part 2 of this series picks up.</p>
+<hr>
+</section>
+<section id="quick-reference-from-zero-to-fair-pipeline" class="level2">
+<h2 class="anchored" data-anchor-id="quick-reference-from-zero-to-fair-pipeline">Quick Reference: From Zero to FAIR Pipeline</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 30%">
+<col style="width: 40%">
+<col style="width: 30%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Step</th>
+<th>Action</th>
+<th>Time</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td>Create <code>ro-crate-metadata.json</code> in pipeline root</td>
+<td>30 min</td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td>Add authors (with ORCID), description, keywords, I/O parameters</td>
+<td>20 min</td>
+</tr>
+<tr class="odd">
+<td>3</td>
+<td>Add bio.tools IDs for your software dependencies</td>
+<td>15 min</td>
+</tr>
+<tr class="even">
+<td>4</td>
+<td>Enable <code>nf-prov</code> in <code>nextflow.config</code></td>
+<td>10 min</td>
+</tr>
+<tr class="odd">
+<td>5</td>
+<td>Run pipeline, inspect generated run-level RO-Crate</td>
+<td>20 min</td>
+</tr>
+<tr class="even">
+<td>6</td>
+<td>Register pipeline on WorkflowHub for a DOI</td>
+<td>30 min</td>
+</tr>
+</tbody>
+</table>
+<hr>
+</section>
+<section id="references" class="level2">
+<h2 class="anchored" data-anchor-id="references">References</h2>
+<ol type="1">
+<li>Soiland-Reyes S et al.&nbsp;(2022). Packaging research artefacts with RO-Crate. <em>Data Science</em>. DOI: <a href="https://doi.org/10.3233/DS-210053">10.3233/DS-210053</a></li>
+<li>Soiland-Reyes S et al.&nbsp;(2022). Creating lightweight FAIR Digital Objects with RO-Crate. <em>Research Ideas and Outcomes</em>, Vol. 8. DOI: <a href="https://doi.org/10.3897/rio.8.e93937">10.3897/rio.8.e93937</a></li>
+<li>Wilkinson MD et al.&nbsp;(2016). The FAIR Guiding Principles for scientific data management and stewardship. <em>Scientific Data</em>. DOI: <a href="https://doi.org/10.1038/sdata.2016.18">10.1038/sdata.2016.18</a></li>
+<li>Groth P, Moreau L (2013). PROV-Overview: An Overview of the PROV Family of Documents. W3C Working Group Note. <a href="https://www.w3.org/TR/prov-overview/">https://www.w3.org/TR/prov-overview/</a></li>
+</ol>
+<hr>
+<p><em>Questions about your own Nextflow setup or RO-Crate integration? Connect on <a href="https://linkedin.com/in/shubhamsendre">LinkedIn</a>.</em></p>
+
+
+</section>
+
+
+<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document"><h2 class="anchored quarto-appendix-heading">Footnotes</h2>
+
+<ol>
+<li id="fn1"><p>Soiland-Reyes S et al.&nbsp;(2022). Packaging research artefacts with RO-Crate. <em>Data Science</em>. DOI: 10.3233/DS-210053↩︎</p></li>
+<li id="fn2"><p>Wilkinson MD et al.&nbsp;(2016). The FAIR Guiding Principles for scientific data management and stewardship. <em>Scientific Data</em>. DOI: 10.1038/sdata.2016.18↩︎</p></li>
+<li id="fn3"><p>Groth P, Moreau L (2013). PROV-Overview: An Overview of the PROV Family of Documents. W3C Working Group Note. https://www.w3.org/TR/prov-overview/↩︎</p></li>
+</ol>
+</section></div> ]]></description>
+  <category>nextflow</category>
+  <category>ro-crate</category>
+  <category>reproducibility</category>
+  <category>bioinformatics</category>
+  <category>workflowhub</category>
+  <guid>https://shubhamsendre.github.io/posts/ro-crate-nextflow/draft_v1.html</guid>
+  <pubDate>Thu, 04 Jun 2026 00:00:00 GMT</pubDate>
+</item>
+<item>
+  <title>RO-Crate and Nextflow: Making Your Pipeline Outputs FAIR and Reproducible</title>
+  <dc:creator>Shubham Sendre</dc:creator>
+  <link>https://shubhamsendre.github.io/posts/ro-crate-nextflow/</link>
+  <description><![CDATA[ 
+
+
+
+
+<section id="what-is-ro-crate" class="level2">
+<h2 class="anchored" data-anchor-id="what-is-ro-crate">What Is RO-Crate?</h2>
+<p><strong>RO-Crate</strong> (Research Object Crate) is a community standard for packaging research outputs — workflows, data, code, results — together with structured metadata that makes them self-describing.</p>
+<p>The idea is simple: a folder of pipeline outputs means nothing to anyone except the person who ran it. An RO-Crate is that same folder with a <code>ro-crate-metadata.json</code> at the root that answers the questions any reader would ask:</p>
+<ul>
+<li>What is this?</li>
+<li>Who created it?</li>
+<li>What inputs were used?</li>
+<li>What tools ran, at what versions?</li>
+<li>What outputs were produced?</li>
+<li>When did it run?</li>
+</ul>
+<p>The metadata uses <a href="https://schema.org">schema.org</a> vocabulary — the same structured data standard that underpins Google’s knowledge graph — which means it is both human-readable and machine-parseable by any system that understands the spec.</p>
+<p>RO-Crate is not a new file format. It is a convention: any directory with a <code>ro-crate-metadata.json</code> that conforms to the <a href="https://www.researchobject.org/ro-crate/">RO-Crate specification</a> is a valid RO-Crate.</p>
+<hr>
+</section>
+<section id="two-levels-of-ro-crate-in-a-nextflow-pipeline" class="level2">
+<h2 class="anchored" data-anchor-id="two-levels-of-ro-crate-in-a-nextflow-pipeline">Two Levels of RO-Crate in a Nextflow Pipeline</h2>
+<p>Before going further, it helps to understand that RO-Crate applies at two distinct levels in a Nextflow context:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 16%">
+<col style="width: 45%">
+<col style="width: 38%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Level</th>
+<th>What it describes</th>
+<th>When it exists</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Pipeline-level</strong></td>
+<td>The workflow itself — purpose, authors, license, inputs, outputs</td>
+<td>Once per pipeline, committed to the repo</td>
+</tr>
+<tr class="even">
+<td><strong>Run-level</strong></td>
+<td>A specific execution — input files, output files, parameters, container versions, timestamps</td>
+<td>Generated fresh per pipeline run</td>
+</tr>
+</tbody>
+</table>
+<p>Both are valid RO-Crates. They serve different purposes. The pipeline-level one makes your workflow a citable, discoverable artifact. The run-level one is your audit trail and reproducibility record.</p>
+<hr>
+</section>
+<section id="pipeline-level-ro-crate-describing-your-workflow" class="level2">
+<h2 class="anchored" data-anchor-id="pipeline-level-ro-crate-describing-your-workflow">Pipeline-Level RO-Crate: Describing Your Workflow</h2>
+<p>A pipeline-level <code>ro-crate-metadata.json</code> lives in the root of your pipeline repository. It describes your workflow as a <code>ComputationalWorkflow</code> — a scientific artifact with a name, authors, license, and formal descriptions of its inputs and outputs.</p>
+<section id="the-minimal-structure" class="level3">
+<h3 class="anchored" data-anchor-id="the-minimal-structure">The Minimal Structure</h3>
+<p>Every valid RO-Crate metadata file has two required entries in its <code>@graph</code>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb1-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb1-2">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@context"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"https://w3id.org/ro/crate/1.1/context"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb1-3">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@graph"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">[</span></span>
+<span id="cb1-4">    <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb1-5">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@id"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"ro-crate-metadata.json"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb1-6">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@type"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"CreativeWork"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb1-7">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"conformsTo"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span><span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@id"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"https://w3id.org/ro/crate/1.1"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">},</span></span>
+<span id="cb1-8">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"about"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span><span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@id"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"./"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span></span>
+<span id="cb1-9">    <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb1-10">    <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb1-11">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@id"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"./"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb1-12">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@type"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">[</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Dataset"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"ComputationalWorkflow"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">]</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb1-13">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"name"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"my-annotation-pipeline"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb1-14">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"description"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"A Nextflow pipeline for variant annotation using VEP, FastQC, and MultiQC."</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb1-15">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"license"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"MIT"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb1-16">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"version"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"1.0.0"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb1-17">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"programmingLanguage"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb1-18">        <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@id"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"https://w3id.org/workflowhub/workflow-ro-crate#nextflow"</span></span>
+<span id="cb1-19">      <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">},</span></span>
+<span id="cb1-20">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"author"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">[</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span><span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@id"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"#author-1"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">]</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb1-21">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"input"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">[</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span><span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@id"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"#input-samplesheet"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">]</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb1-22">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"output"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">[</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span><span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@id"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"#output-vcf"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">]</span></span>
+<span id="cb1-23">    <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span></span>
+<span id="cb1-24">  <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">]</span></span>
+<span id="cb1-25"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span></span></code></pre></div></div>
+<p>The first entry (<code>ro-crate-metadata.json</code>) is the metadata descriptor — it always points to <code>./</code> as its subject. The second entry (<code>./</code>) is the root dataset — your pipeline.</p>
+</section>
+<section id="adding-authors" class="level3">
+<h3 class="anchored" data-anchor-id="adding-authors">Adding Authors</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb2-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb2-2">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@id"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"#author-1"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb2-3">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@type"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Person"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb2-4">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"name"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Shubham Sendre"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb2-5">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"affiliation"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Invisibl Cloud Solutions Pvt. Ltd."</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb2-6">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"url"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"https://linkedin.com/in/shubhamsendre"</span></span>
+<span id="cb2-7"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span></span></code></pre></div></div>
+<p>If you have an ORCID, use that as the <code>@id</code> instead of a local fragment — it makes the pipeline citable in academic contexts.</p>
+</section>
+<section id="describing-inputs-and-outputs" class="level3">
+<h3 class="anchored" data-anchor-id="describing-inputs-and-outputs">Describing Inputs and Outputs</h3>
+<p>Formally documenting inputs and outputs using <code>FormalParameter</code> is what makes the pipeline machine-readable. Tools like WorkflowHub parse these to display pipeline interfaces.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb3-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb3-2">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@id"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"#input-samplesheet"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb3-3">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@type"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"FormalParameter"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb3-4">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"name"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"input"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb3-5">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"description"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Samplesheet CSV with sample IDs and paths to FASTQ files"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb3-6">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"encodingFormat"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"text/csv"</span></span>
+<span id="cb3-7"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span><span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb3-8"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb3-9">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@id"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"#output-vcf"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb3-10">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@type"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"FormalParameter"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb3-11">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"name"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"annotated_vcf"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb3-12">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"description"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"VEP-annotated VCF with functional consequence predictions"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb3-13">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"encodingFormat"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"text/tab-separated-values"</span></span>
+<span id="cb3-14"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span></span></code></pre></div></div>
+</section>
+<section id="referencing-software-dependencies" class="level3">
+<h3 class="anchored" data-anchor-id="referencing-software-dependencies">Referencing Software Dependencies</h3>
+<p>Use <a href="https://bio.tools">bio.tools</a> identifiers where they exist — they are the standard registry for bioinformatics tools.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb4-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb4-2">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@id"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"https://bio.tools/vep"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb4-3">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@type"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"SoftwareApplication"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb4-4">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"name"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Ensembl VEP"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb4-5">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"version"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"110.1"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb4-6">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"url"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"https://www.ensembl.org/vep"</span></span>
+<span id="cb4-7"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span></span></code></pre></div></div>
+<p>Add this to <code>hasPart</code> or <code>softwareRequirements</code> on the root Dataset node.</p>
+<hr>
+</section>
+</section>
+<section id="run-level-ro-crate-provenance-with-nf-prov" class="level2">
+<h2 class="anchored" data-anchor-id="run-level-ro-crate-provenance-with-nf-prov">Run-Level RO-Crate: Provenance with nf-prov</h2>
+<p>The pipeline-level RO-Crate describes your workflow as a static artifact. Run-level provenance captures what actually happened in a specific execution — which input files, which container versions, which parameters, what outputs, and when.</p>
+<p>The <a href="https://github.com/nextflow-io/nf-prov"><code>nf-prov</code> plugin</a> handles this in Nextflow.</p>
+<section id="enabling-nf-prov" class="level3">
+<h3 class="anchored" data-anchor-id="enabling-nf-prov">Enabling nf-prov</h3>
+<p>Add to your <code>nextflow.config</code>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode groovy code-with-copy"><code class="sourceCode groovy"><span id="cb5-1">plugins <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb5-2">  id <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'nf-prov@1.2.2'</span></span>
+<span id="cb5-3"><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span></span>
+<span id="cb5-4"></span>
+<span id="cb5-5">prov <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb5-6">  enabled <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">true</span></span>
+<span id="cb5-7">  formats <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb5-8">    rocrate <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb5-9">      file <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">${</span>params<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span>outdir<span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">}</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">/pipeline_info/ro-crate-metadata.json"</span></span>
+<span id="cb5-10">    <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span></span>
+<span id="cb5-11">  <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span></span>
+<span id="cb5-12"><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span></span></code></pre></div></div>
+</section>
+<section id="what-gets-captured-per-run" class="level3">
+<h3 class="anchored" data-anchor-id="what-gets-captured-per-run">What Gets Captured Per Run</h3>
+<p>After every pipeline run, <code>nf-prov</code> writes an <code>ro-crate-metadata.json</code> into your output directory that records:</p>
+<ul>
+<li>Workflow version (exact git commit or tag)</li>
+<li>Input files with checksums (MD5/SHA256)</li>
+<li>Output files with checksums and sizes</li>
+<li>Start and end timestamps per process</li>
+<li>Container image IDs used per process</li>
+<li>Full resolved parameter set at runtime</li>
+</ul>
+<p>A fragment of what this looks like:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb6-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb6-2">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@id"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"#run-2026-04-15"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb6-3">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@type"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"CreateAction"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb6-4">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"instrument"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span><span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@id"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"main.nf"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">},</span></span>
+<span id="cb6-5">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"startTime"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"2026-04-15T09:23:11Z"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb6-6">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"endTime"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"2026-04-15T11:47:32Z"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb6-7">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"object"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">[</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span><span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@id"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"inputs/samplesheet.csv"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">]</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb6-8">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"result"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">[</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span><span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"@id"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"results/annotated.vcf.gz"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">]</span></span>
+<span id="cb6-9"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span></span></code></pre></div></div>
+<p>This is the difference between <em>“I ran the pipeline”</em> and <em>“I can prove exactly what ran, on what input, at what time, and what came out.”</em></p>
+<hr>
+</section>
+</section>
+<section id="publishing-to-workflowhub" class="level2">
+<h2 class="anchored" data-anchor-id="publishing-to-workflowhub">Publishing to WorkflowHub</h2>
+<p><a href="https://workflowhub.eu/">WorkflowHub</a> is the community registry for FAIR scientific workflows. It reads your pipeline-level <code>ro-crate-metadata.json</code> directly to:</p>
+<ul>
+<li>Display pipeline metadata, authors, description, and inputs/outputs</li>
+<li>Assign a <strong>DOI</strong> to your pipeline version, making it citable in publications</li>
+<li>Link to bio.tools and Bioschemas entries for referenced software</li>
+<li>Index your pipeline for discoverability across the research community</li>
+</ul>
+<p>Registering is straightforward: you provide a link to your repository or upload a zip, and WorkflowHub validates your RO-Crate and creates a landing page.</p>
+<!--
+  Add your nf-core template example here:
+  Show the ro-crate-metadata.json that ships with the nf-core template
+  and how WorkflowHub reads it for registered nf-core pipelines.
+-->
+<p>A DOI-backed WorkflowHub entry is also a portfolio item — a versioned, citable artifact with your name on it that you can link from your CV or LinkedIn.</p>
+<hr>
+</section>
+<section id="why-this-matters-beyond-good-practice" class="level2">
+<h2 class="anchored" data-anchor-id="why-this-matters-beyond-good-practice">Why This Matters Beyond Good Practice</h2>
+<p>Three concrete reasons to invest time in RO-Crate now:</p>
+<p><strong>Reproducibility is becoming a requirement.</strong> Journals, funders, and institutions increasingly require that computational analyses be reproducible. An <code>nf-prov</code> generated RO-Crate is concrete evidence — not just “here’s the code,” but “here’s the exact execution with checksums.”</p>
+<p><strong>Client and audit requirements.</strong> Delivering pipeline outputs to external clients — pharma companies, hospitals, research institutes — often comes with a question: <em>can you prove what ran?</em> An RO-Crate run record is a ready-made answer.</p>
+<p><strong>The bridge to regulated environments.</strong> Trusted Research Environments (TREs) — secure compute environments for sensitive clinical data used in NHS, UK Biobank, and EU health data spaces — require data provenance and audit trails by design. RO-Crate is one of the standards being evaluated and adopted to satisfy those requirements.</p>
+<p>That last point is where this gets interesting, and where Part 2 of this series picks up.</p>
+<hr>
+</section>
+<section id="quick-reference-from-zero-to-fair-pipeline" class="level2">
+<h2 class="anchored" data-anchor-id="quick-reference-from-zero-to-fair-pipeline">Quick Reference: From Zero to FAIR Pipeline</h2>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Step</th>
+<th>Action</th>
+<th>Time</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td>Create <code>ro-crate-metadata.json</code> in pipeline root</td>
+<td>30 min</td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td>Add authors, description, keywords, I/O parameters</td>
+<td>20 min</td>
+</tr>
+<tr class="odd">
+<td>3</td>
+<td>Enable <code>nf-prov</code> in <code>nextflow.config</code></td>
+<td>15 min</td>
+</tr>
+<tr class="even">
+<td>4</td>
+<td>Run pipeline, inspect generated run-level RO-Crate</td>
+<td>20 min</td>
+</tr>
+<tr class="odd">
+<td>5</td>
+<td>Register pipeline on WorkflowHub for a DOI</td>
+<td>30 min</td>
+</tr>
+</tbody>
+</table>
+<hr>
+</section>
+<section id="whats-next" class="level2">
+<h2 class="anchored" data-anchor-id="whats-next">What’s Next</h2>
+<p><strong>Part 2</strong> goes into Trusted Research Environments — what they are, why they exist for clinical genomics, and how RO-Crate fits into the data governance frameworks that TREs require. We’ll look at real examples from NHS England and the European Health Data Space, and what this means practically for bioinformaticians whose pipelines need to run inside those environments.</p>
+<hr>
+<p><em>Questions about your own Nextflow setup or RO-Crate integration? Connect on <a href="https://linkedin.com/in/shubhamsendre">LinkedIn</a>.</em></p>
+
+
+</section>
+
+ ]]></description>
+  <category>nextflow</category>
+  <category>ro-crate</category>
+  <category>reproducibility</category>
+  <category>bioinformatics</category>
+  <category>workflowhub</category>
+  <guid>https://shubhamsendre.github.io/posts/ro-crate-nextflow/</guid>
+  <pubDate>Wed, 06 May 2026 00:00:00 GMT</pubDate>
+</item>
+</channel>
+</rss>
