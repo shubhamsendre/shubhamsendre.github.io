@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.19">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Shubham Sendre">
+<meta name="dcterms.date" content="2026-10-10">
+<meta name="description" content="A hands-on benchmark of Pixi against conda and mamba for resolving nf-core/rnaseq’s real bioconda dependency stack — plus why uv, the tool this post was originally supposed to be about, can’t take part at all.">
+
+<title>Pixi vs.&nbsp;Conda for Production Bioinformatics Environments: Why uv Doesn’t Even Get to Compete – Shubham Sendre</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<link href="../../assets/favicon.ico" rel="icon">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-d466d15e0e21ad9f48f8132b44181650.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-7b26d27dd4e6b6a4ba68e71733c90f64.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<style>html{ scroll-behavior: smooth; }</style>
+
+
+</head>
+
+<body class="floating nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Shubham Sendre</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../index.html"> 
+<span class="menu-text">Writing</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../projects.html"> 
+<span class="menu-text">Projects</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/shubhamsendre"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://linkedin.com/in/shubhamsendre"> <i class="bi bi-linkedin" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#what-this-was-supposed-to-be-and-why-it-changed" id="toc-what-this-was-supposed-to-be-and-why-it-changed" class="nav-link active" data-scroll-target="#what-this-was-supposed-to-be-and-why-it-changed">What This Was Supposed to Be (and Why It Changed)</a></li>
+  <li><a href="#the-task-reproduce-a-real-pipelines-dependencies" id="toc-the-task-reproduce-a-real-pipelines-dependencies" class="nav-link" data-scroll-target="#the-task-reproduce-a-real-pipelines-dependencies">The Task: Reproduce a Real Pipeline’s Dependencies</a>
+  <ul class="collapse">
+  <li><a href="#finding-1-you-cant-combine-them-into-one-environment" id="toc-finding-1-you-cant-combine-them-into-one-environment" class="nav-link" data-scroll-target="#finding-1-you-cant-combine-them-into-one-environment">Finding 1: You Can’t Combine Them Into One Environment</a></li>
+  </ul></li>
+  <li><a href="#finding-2-per-module-all-three-tools-just-work" id="toc-finding-2-per-module-all-three-tools-just-work" class="nav-link" data-scroll-target="#finding-2-per-module-all-three-tools-just-work">Finding 2: Per-Module, All Three Tools Just Work</a>
+  <ul class="collapse">
+  <li><a href="#results" id="toc-results" class="nav-link" data-scroll-target="#results">Results</a></li>
+  <li><a href="#an-honest-caveat-on-these-numbers" id="toc-an-honest-caveat-on-these-numbers" class="nav-link" data-scroll-target="#an-honest-caveat-on-these-numbers">An Honest Caveat on These Numbers</a></li>
+  </ul></li>
+  <li><a href="#finding-3-reproducibility-both-work-for-different-reasons" id="toc-finding-3-reproducibility-both-work-for-different-reasons" class="nav-link" data-scroll-target="#finding-3-reproducibility-both-work-for-different-reasons">Finding 3: Reproducibility — Both Work, for Different Reasons</a></li>
+  <li><a href="#where-uv-actually-fits" id="toc-where-uv-actually-fits" class="nav-link" data-scroll-target="#where-uv-actually-fits">Where uv Actually Fits</a></li>
+  <li><a href="#reproducing-this" id="toc-reproducing-this" class="nav-link" data-scroll-target="#reproducing-this">Reproducing This</a></li>
+  </ul>
+</nav>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Pixi vs.&nbsp;Conda for Production Bioinformatics Environments: Why uv Doesn’t Even Get to Compete</h1>
+  <div class="quarto-categories">
+    <div class="quarto-category">bioinformatics</div>
+    <div class="quarto-category">nextflow</div>
+    <div class="quarto-category">environments</div>
+    <div class="quarto-category">pixi</div>
+    <div class="quarto-category">conda</div>
+    <div class="quarto-category">packaging</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    A hands-on benchmark of Pixi against conda and mamba for resolving nf-core/rnaseq’s real bioconda dependency stack — plus why uv, the tool this post was originally supposed to be about, can’t take part at all.
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Shubham Sendre </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">October 10, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="what-this-was-supposed-to-be-and-why-it-changed" class="level2">
+<h2 class="anchored" data-anchor-id="what-this-was-supposed-to-be-and-why-it-changed">What This Was Supposed to Be (and Why It Changed)</h2>
+<p>This started as a straight Pixi-vs-uv comparison: install the same production bioinformatics environment with both, time it, compare lockfiles. That post doesn’t exist, because the premise doesn’t survive contact with reality.</p>
+<p><strong>uv cannot install bioconda packages.</strong> It is a PyPI-and-Python-interpreter tool, full stop. Its maintainers have <a href="https://github.com/astral-sh/uv/issues/1703">an open issue</a> requesting conda-channel support, opened in February 2024, explicitly tagged “not on the immediate roadmap.” STAR, Salmon, samtools, FastQC — the actual tools a pipeline like <a href="https://nf-co.re/rnaseq">nf-core/rnaseq</a> depends on — are compiled binaries distributed through bioconda, not Python wheels on PyPI. uv cannot see them, let alone install them.</p>
+<p>So this is a <strong>Pixi vs.&nbsp;conda/mamba</strong> post instead, which is where the real comparison lives. uv gets one section near the end, because Pixi actually uses it internally for the pure-Python slice of a project — that’s the honest role it plays here.</p>
+</section>
+<section id="the-task-reproduce-a-real-pipelines-dependencies" class="level2">
+<h2 class="anchored" data-anchor-id="the-task-reproduce-a-real-pipelines-dependencies">The Task: Reproduce a Real Pipeline’s Dependencies</h2>
+<p><a href="https://nf-co.re/rnaseq">nf-core/rnaseq</a> is a widely-used, production Nextflow pipeline. I pulled its dependency declarations at tag <a href="https://github.com/nf-core/rnaseq/tree/3.27.0"><code>3.27.0</code></a> — 74 module-level <code>environment.yml</code> files, covering everything from <code>fastqc</code> to <code>bioconductor-deseq2</code>.</p>
+<p>The obvious first move — combine all 74 files into one environment and install it once — fails, and <em>how</em> it fails is itself informative.</p>
+<section id="finding-1-you-cant-combine-them-into-one-environment" class="level3">
+<h3 class="anchored" data-anchor-id="finding-1-you-cant-combine-them-into-one-environment">Finding 1: You Can’t Combine Them Into One Environment</h3>
+<p>Different modules pin different versions of the same package, because each module only ever runs in its own container or environment in production — nobody has ever needed all 74 to agree on one shared set. Combining them surfaces that immediately:</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Package</th>
+<th>Conflicting pins across modules</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>python</code></td>
+<td>3.9.18, 3.12.2, 3.12.12, 3.14.5</td>
+</tr>
+<tr class="even">
+<td><code>samtools</code> / <code>htslib</code></td>
+<td>1.21 and 1.24</td>
+</tr>
+<tr class="odd">
+<td><code>r-base</code></td>
+<td>4.3 and 4.4.2</td>
+</tr>
+<tr class="even">
+<td><code>gawk</code></td>
+<td>5.1.0 and 5.3.1</td>
+</tr>
+<tr class="odd">
+<td><code>sed</code></td>
+<td>4.7 and 4.8</td>
+</tr>
+</tbody>
+</table>
+<p>Taking the highest pin for each and resolving the combined set still fails — not just on these six, but broadly. Conda’s solver rejects it on <code>perl=5.26.2</code> (a 2017 release incompatible with newer package builds), <code>multiqc</code>, <code>preseq</code>, <code>sentieon</code>, and <code>umi_tools</code>, on top of the version splits above. Splitting into three coarser groups (core bioconda tools, the R/Bioconductor stack, <code>sortmerna</code> alone — isolated because its package has Python-build variants that clash with the rest) <em>still</em> doesn’t fully resolve it.</p>
+<p>The only granularity that actually works is nf-core’s own: <strong>one environment per module.</strong> That’s not a limitation of this benchmark — it’s confirmation that nf-core’s container-first design (Docker/Singularity per process, with <code>-profile conda</code> kept as an explicit last resort in its own docs) is the only architecture that was ever going to hold together.</p>
+</section>
+</section>
+<section id="finding-2-per-module-all-three-tools-just-work" class="level2">
+<h2 class="anchored" data-anchor-id="finding-2-per-module-all-three-tools-just-work">Finding 2: Per-Module, All Three Tools Just Work</h2>
+<p>With that constraint accepted, I benchmarked conda, mamba, and Pixi installing each of the 74 module environments independently — cold cache (cleared before each tool’s run) and warm cache (repeated right after), one pass each.</p>
+<section id="results" class="level3">
+<h3 class="anchored" data-anchor-id="results">Results</h3>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Tool</th>
+<th>Cold total (74 modules)</th>
+<th>Cold avg/module</th>
+<th>Warm total</th>
+<th>Warm avg/module</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>conda</td>
+<td>820.2 s</td>
+<td>11.08 s</td>
+<td>488.8 s</td>
+<td>6.61 s</td>
+</tr>
+<tr class="even">
+<td>mamba</td>
+<td>683.6 s</td>
+<td>9.24 s</td>
+<td>381.4 s</td>
+<td>5.15 s</td>
+</tr>
+<tr class="odd">
+<td><strong>Pixi</strong></td>
+<td><strong>590.1 s</strong></td>
+<td><strong>7.97 s</strong></td>
+<td><strong>263.0 s</strong></td>
+<td><strong>3.55 s</strong></td>
+</tr>
+</tbody>
+</table>
+<p>Pixi wins on both cold and warm installs, and the gap widens on warm cache — 3.55s/module average against conda’s 6.61s, nearly 2x. mamba sits in between, as expected for a faster conda-compatible solver that still shares conda’s package-handling machinery.</p>
+</section>
+<section id="an-honest-caveat-on-these-numbers" class="level3">
+<h3 class="anchored" data-anchor-id="an-honest-caveat-on-these-numbers">An Honest Caveat on These Numbers</h3>
+<p>This is <strong>n=1 per cell</strong> — one cold run, one warm run, per tool, per module. These are point estimates, not statistically robust averages. I’d want 3-5 repetitions per cell before trusting the Pixi-vs-mamba gap specifically (9% faster cold, 31% faster warm) to hold up; the conda-vs-Pixi gap is large enough (27% cold, 46% warm) that it’s unlikely to be noise, but treat the exact numbers as directional, not definitive.</p>
+<p>One run also hit a real anomaly worth disclosing rather than hiding: Pixi’s cold run on <code>rseqc/junctionannotation</code> initially logged 47,950 seconds — clearly not a real solve time. A clean re-run of the <em>identical</em> spec took 66.5 seconds, in line with six other modules sharing the same two-package set. The likely cause: this machine’s disk hit 99% full partway through the run (my own accumulated package caches were part of that), and I/O under near-zero free space can stall arbitrarily. I’ve reported the clean reproduction value in the table above, not the stall, and disclosed it here instead of pretending it didn’t happen. Five other cells (one <code>mamba</code> failure, four <code>pixi</code> warm-pass failures) failed with explicit <code>ENOSPC</code> errors during that same disk-pressure window and were re-run cleanly afterward with headroom restored.</p>
+</section>
+</section>
+<section id="finding-3-reproducibility-both-work-for-different-reasons" class="level2">
+<h2 class="anchored" data-anchor-id="finding-3-reproducibility-both-work-for-different-reasons">Finding 3: Reproducibility — Both Work, for Different Reasons</h2>
+<p>I installed the most complex module (<code>deseq2_qc</code>, 9 packages spanning R and Bioconductor) twice, independently, with both tools, and diffed the result:</p>
+<ul>
+<li><strong>Pixi</strong>: <code>pixi.lock</code> was byte-identical across both installs.</li>
+<li><strong>conda</strong>: <code>conda list --explicit</code> output (which pins exact build strings, not just versions) was also identical across both installs.</li>
+</ul>
+<p>Both reproduce exactly here — which isn’t actually the interesting finding, given every package in this test was already pinned to an exact version. The real difference is structural, not about single-run determinism:</p>
+<ul>
+<li><strong>Pixi generates <code>pixi.lock</code> automatically, every time</strong>, covering the whole resolved graph with hashes, committed alongside the project by default.</li>
+<li><strong>conda’s reproducibility is opt-in and manual.</strong> <code>conda create</code> and <code>conda env create -f environment.yml</code> don’t produce a lock file. You have to remember to run <code>conda list --explicit</code> yourself, after the fact, and keep that output somewhere. nf-core’s own module <code>environment.yml</code> files — the actual input to the <code>-profile conda</code> path — carry <strong>no lock file at all</strong>; they pin top-level versions but say nothing about transitive dependencies or build strings, which can drift as the channel index changes over time.</li>
+</ul>
+<p>So the honest claim isn’t “Pixi is more reproducible than conda in a single run” — it’s “Pixi makes reproducibility the default behavior; conda makes it something you have to deliberately opt into and maintain yourself.”</p>
+</section>
+<section id="where-uv-actually-fits" class="level2">
+<h2 class="anchored" data-anchor-id="where-uv-actually-fits">Where uv Actually Fits</h2>
+<p>uv isn’t absent from this story — it’s just not competing in it. Pixi uses uv internally to resolve and install any PyPI-only dependencies a project declares alongside its conda packages (via Pixi’s <code>[pypi-dependencies]</code> table). So the realistic role for uv in a bioinformatics pipeline isn’t “replace conda” — it’s “handle the pure-Python tooling around the pipeline” — custom analysis scripts, <code>nf-core-tools</code> itself, anything with no bioconda-only binary dependency — while Pixi (or conda/mamba) handles the actual tool binaries. Poetry sits in the same category as uv here: PyPI-only, no bioconda reach, useful for the Python-only slice and nothing else.</p>
+</section>
+<section id="reproducing-this" class="level2">
+<h2 class="anchored" data-anchor-id="reproducing-this">Reproducing This</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Pull the pinned pipeline version and extract per-module specs</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> clone <span class="at">--depth</span> 1 <span class="at">--branch</span> 3.27.0 https://github.com/nf-core/rnaseq.git</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># For a single module, install with each tool (example: fastqc)</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="ex">conda</span> create <span class="at">-y</span> <span class="at">-p</span> /tmp/env-conda <span class="at">-c</span> conda-forge <span class="at">-c</span> bioconda <span class="at">--override-channels</span> fastqc=0.12.1</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="ex">mamba</span> create <span class="at">-y</span> <span class="at">-p</span> /tmp/env-mamba <span class="at">-c</span> conda-forge <span class="at">-c</span> bioconda <span class="at">--override-channels</span> fastqc=0.12.1</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="ex">pixi</span> init /tmp/env-pixi <span class="kw">&amp;&amp;</span> <span class="bu">cd</span> /tmp/env-pixi <span class="kw">&amp;&amp;</span> <span class="ex">pixi</span> add <span class="at">-c</span> conda-forge <span class="at">-c</span> bioconda fastqc==0.12.1</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Reproducibility check</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="ex">conda</span> list <span class="at">-p</span> /tmp/env-conda <span class="at">--explicit</span>   <span class="co"># re-run install, diff this output</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> pixi.lock                              <span class="co"># re-run pixi install, diff this file</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>The full per-module benchmark script, the 74-module spec extraction, and the raw results (<a href="public/artifacts/module_benchmark.csv"><code>module_benchmark.csv</code></a>) are in this post’s source directory.</p>
+<hr>
+<p><em>Questions about the benchmark or the methodology? Connect on <a href="https://linkedin.com/in/shubhamsendre">LinkedIn</a>.</em></p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script src="assets/filter-tags.js"></script>
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/shubhamsendre\.github\.io");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+            // target, if specified
+            link.setAttribute("target", "_blank");
+            if (link.getAttribute("rel") === null) {
+              link.setAttribute("rel", "noopener");
+            }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+      &nbsp;
+    </div>   
+    <div class="nav-footer-center">
+<p>Shubham Sendre · 2026</p>
+</div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+
+
+
+
+<script src="../../site_libs/quarto-html/zenscroll-min.js"></script>
+</body></html>

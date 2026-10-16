@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="./favicon.ico" />
+    <!-- Preload is necessary because we show these images when we disconnect from the server,
+    but at that point we cannot load these images from the server -->
+    <link rel="preload" href="./assets/gradient-yHQUC_QB.png" as="image" />
+    <link rel="preload" href="./assets/noise-60BoTA8O.png" as="image" />
+    <!-- Preload the fonts -->
+    <link rel="preload" href="./assets/Lora-VariableFont_wght-CZceb_kH.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
+    <link rel="preload" href="./assets/PTSans-Regular-Bam3NpBI.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
+    <link rel="preload" href="./assets/PTSans-Bold-C_DwAp7Z.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
+    <link rel="preload" href="./assets/FiraMono-Regular-CEsLFVD9.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
+    <link rel="preload" href="./assets/FiraMono-Medium-D5MAsWEG.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
+    <link rel="preload" href="./assets/FiraMono-Bold-C6PDArdf.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+    <meta name="description" content="a marimo app" />
+    <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
+    <link rel="manifest" href="./manifest.json" />
+
+    <script data-marimo="true">
+      function __resizeIframe(obj) {
+        const scrollbarHeight = 20; // Max between windows, mac, and linux
+
+        function setHeight() {
+          // Guard against race condition where iframe isn't ready
+          if (!obj.contentWindow?.document?.documentElement) {
+            return;
+          }
+          const element = obj.contentWindow.document.documentElement;
+          // If there is no vertical scrollbar, we don't need to resize the iframe
+          if (element.scrollHeight === element.clientHeight) {
+            return;
+          }
+
+          // Create a new height that includes the scrollbar height if it's visible
+          const hasHorizontalScrollbar = element.scrollWidth > element.clientWidth;
+          const newHeight = element.scrollHeight + (hasHorizontalScrollbar ? scrollbarHeight : 0);
+
+          // Only update the height if it's different from the current height
+          if (obj.style.height !== `${newHeight}px`) {
+            obj.style.height = `${newHeight}px`;
+          }
+        }
+
+        // Resize the iframe to the height of the content and bottom scrollbar height
+        setHeight();
+
+        // Resize the iframe when the content changes
+        const resizeObserver = new ResizeObserver((_entries) => {
+          setHeight();
+        });
+        // Only observe if iframe content is ready
+        if (obj.contentWindow?.document?.body) {
+          resizeObserver.observe(obj.contentWindow.document.body);
+        }
+      }
+    </script>
+    <marimo-filename hidden>notebook.py</marimo-filename>
+    <!-- TODO(Trevor): Legacy, required by VS Code plugin. Remove when plugin is updated (see marimo/server/_templates/template.py) -->
+    <marimo-version data-version="{{ version }}" hidden></marimo-version>
+    <marimo-user-config data-config="{{ user_config }}" hidden></marimo-user-config>
+    <marimo-server-token data-token="{{ server_token }}" hidden></marimo-server-token>
+    <!-- /TODO -->
+    <title>notebook</title>
+    <script type="module" crossorigin src="./assets/index-DafnX1Xx.js"></script>
+    <link rel="modulepreload" crossorigin href="./assets/rolldown-runtime-B0Z9INg1.js">
+    <link rel="modulepreload" crossorigin href="./assets/react-CUdNIagt.js">
+    <link rel="modulepreload" crossorigin href="./assets/compiler-runtime-BQ9S8nyo.js">
+    <link rel="modulepreload" crossorigin href="./assets/useEvent-Dc9HkKI2.js">
+    <link rel="modulepreload" crossorigin href="./assets/react-dom-CKsE8sC1.js">
+    <link rel="modulepreload" crossorigin href="./assets/schemas-BL-NsLlF.js">
+    <link rel="modulepreload" crossorigin href="./assets/isObject-BCaOs5rp.js">
+    <link rel="modulepreload" crossorigin href="./assets/isSymbol-oX0TOjjx.js">
+    <link rel="modulepreload" crossorigin href="./assets/now-Cmx0b_zA.js">
+    <link rel="modulepreload" crossorigin href="./assets/debounce-aFmHgJZY.js">
+    <link rel="modulepreload" crossorigin href="./assets/isArrayLikeObject-DnwgSs_Z.js">
+    <link rel="modulepreload" crossorigin href="./assets/_baseMerge-CQpUq7ep.js">
+    <link rel="modulepreload" crossorigin href="./assets/objects-snlMn4yk.js">
+    <link rel="modulepreload" crossorigin href="./assets/jsx-runtime-B74pBk57.js">
+    <link rel="modulepreload" crossorigin href="./assets/useEventListener-BdZUApHd.js">
+    <link rel="modulepreload" crossorigin href="./assets/invariant-Ci2dTZ72.js">
+    <link rel="modulepreload" crossorigin href="./assets/config-BxZgoFvi.js">
+    <link rel="modulepreload" crossorigin href="./assets/utils-B4K466FK.js">
+    <link rel="modulepreload" crossorigin href="./assets/session-DXKMv4Bs.js">
+    <link rel="modulepreload" crossorigin href="./assets/Deferred-CrTnjj37.js">
+    <link rel="modulepreload" crossorigin href="./assets/config-DpGPGznL.js">
+    <link rel="modulepreload" crossorigin href="./assets/clsx-DB0hHKMi.js">
+    <link rel="modulepreload" crossorigin href="./assets/cn-ldLVeaqm.js">
+    <link rel="modulepreload" crossorigin href="./assets/fullscreen-BmzAqMKq.js">
+    <link rel="modulepreload" crossorigin href="./assets/dist-CyYN7zJg.js">
+    <link rel="modulepreload" crossorigin href="./assets/menu-items-BBdeXCvU.js">
+    <link rel="modulepreload" crossorigin href="./assets/use-restore-focus-B98SEiGc.js">
+    <link rel="modulepreload" crossorigin href="./assets/button-BoklZTGL.js">
+    <link rel="modulepreload" crossorigin href="./assets/createLucideIcon-rHn2EdoM.js">
+    <link rel="modulepreload" crossorigin href="./assets/check-Wea4hZ6R.js">
+    <link rel="modulepreload" crossorigin href="./assets/context-BFOBKCJB.js">
+    <link rel="modulepreload" crossorigin href="./assets/useNumberFormatter-C4-_TnkF.js">
+    <link rel="modulepreload" crossorigin href="./assets/select-BplWpfFo.js">
+    <link rel="modulepreload" crossorigin href="./assets/circle-CeQt3rdW.js">
+    <link rel="modulepreload" crossorigin href="./assets/toast-KNfsFUiB.js">
+    <link rel="modulepreload" crossorigin href="./assets/tooltip-DR2Z2N4w.js">
+    <link rel="modulepreload" crossorigin href="./assets/paths-CzfpItSz.js">
+    <link rel="modulepreload" crossorigin href="./assets/useLifecycle-DKSBdWUf.js">
+    <link rel="modulepreload" crossorigin href="./assets/toDate-BbJ1_N2T.js">
+    <link rel="modulepreload" crossorigin href="./assets/database-zap-CrkOvbyN.js">
+    <link rel="modulepreload" crossorigin href="./assets/alert-dialog-CeE3i3Qa.js">
+    <link rel="modulepreload" crossorigin href="./assets/arrays-BqUx5USx.js">
+    <link rel="modulepreload" crossorigin href="./assets/once-Haz_uxEL.js">
+    <link rel="modulepreload" crossorigin href="./assets/numbers-DsgsDslU.js">
+    <link rel="modulepreload" crossorigin href="./assets/useDebounce-DMbg9X18.js">
+    <link rel="modulepreload" crossorigin href="./assets/input-BDakodZ2.js">
+    <link rel="modulepreload" crossorigin href="./assets/use-toast-CC89xOwH.js">
+    <link rel="modulepreload" crossorigin href="./assets/requests-yTHMxhVa.js">
+    <link rel="modulepreload" crossorigin href="./assets/uuid-k9DpjH68.js">
+    <link rel="modulepreload" crossorigin href="./assets/write-secret-modal-BiG2tahJ.js">
+    <link rel="modulepreload" crossorigin href="./assets/plus-gbN72xHe.js">
+    <link rel="modulepreload" crossorigin href="./assets/trash-2-BJG-7Qob.js">
+    <link rel="modulepreload" crossorigin href="./assets/preload-helper-HclGiUj8.js">
+    <link rel="modulepreload" crossorigin href="./assets/dist-BczecT6V.js">
+    <link rel="modulepreload" crossorigin href="./assets/dist-BTskHGpb.js">
+    <link rel="modulepreload" crossorigin href="./assets/capabilities-Bj3s1hGN.js">
+    <link rel="modulepreload" crossorigin href="./assets/cjs-C49f7GXV.js">
+    <link rel="modulepreload" crossorigin href="./assets/createReducer-BPvK7C_R.js">
+    <link rel="modulepreload" crossorigin href="./assets/dist-Ccyblc8N.js">
+    <link rel="modulepreload" crossorigin href="./assets/marked.esm-B_3iMIUq.js">
+    <link rel="modulepreload" crossorigin href="./assets/strings-BHZPE0Mc.js">
+    <link rel="modulepreload" crossorigin href="./assets/dist-BN-7G8qZ.js">
+    <link rel="modulepreload" crossorigin href="./assets/badge-DFf033uX.js">
+    <link rel="modulepreload" crossorigin href="./assets/dist-CiUBikfn.js">
+    <link rel="modulepreload" crossorigin href="./assets/dist-MRn68vX1.js">
+    <link rel="modulepreload" crossorigin href="./assets/dist-Bviq_Dee.js">
+    <link rel="modulepreload" crossorigin href="./assets/dist-DBqBVprh.js">
+    <link rel="modulepreload" crossorigin href="./assets/dist-DueXZKz9.js">
+    <link rel="modulepreload" crossorigin href="./assets/stex-CJTNBbet.js">
+    <link rel="modulepreload" crossorigin href="./assets/useTheme-DcnXlv0_.js">
+    <link rel="modulepreload" crossorigin href="./assets/useAsyncData-DucTwMkf.js">
+    <link rel="modulepreload" crossorigin href="./assets/purify.es-CYRiAeUx.js">
+    <link rel="modulepreload" crossorigin href="./assets/cells-CzugpTQu.js">
+    <link rel="modulepreload" crossorigin href="./assets/get-DjNf4SIX.js">
+    <link rel="modulepreload" crossorigin href="./assets/copy-RyCOE8jo.js">
+    <link rel="modulepreload" crossorigin href="./assets/copy-BhJktFeI.js">
+    <link rel="modulepreload" crossorigin href="./assets/copy-icon-DFhUGBjO.js">
+    <link rel="modulepreload" crossorigin href="./assets/ErrorBoundary-BeE1cdgM.js">
+    <link rel="modulepreload" crossorigin href="./assets/config-B4VJJibu.js">
+    <link rel="modulepreload" crossorigin href="./assets/chevron-right-DOPs2jx8.js">
+    <link rel="modulepreload" crossorigin href="./assets/dropdown-menu-VuyoeQOD.js">
+    <link rel="modulepreload" crossorigin href="./assets/LazyAnyLanguageCodeMirror-B_IYTCX5.js">
+    <link rel="modulepreload" crossorigin href="./assets/hat-glasses-DVgK5i5l.js">
+    <link rel="modulepreload" crossorigin href="./assets/package-BeYhVWvM.js">
+    <link rel="modulepreload" crossorigin href="./assets/errors-D9vyuMar.js">
+    <link rel="modulepreload" crossorigin href="./assets/defaultLocale-CNPGWpMu.js">
+    <link rel="modulepreload" crossorigin href="./assets/precisionRound-Bq_nmf5u.js">
+    <link rel="modulepreload" crossorigin href="./assets/defaultLocale-D5bOh7g6.js">
+    <link rel="modulepreload" crossorigin href="./assets/vega-loader.browser-CLRkNgm7.js">
+    <link rel="modulepreload" crossorigin href="./assets/tooltip-PLkI_UfK.js">
+    <link rel="modulepreload" crossorigin href="./assets/filename-fxG7K_MU.js">
+    <link rel="modulepreload" crossorigin href="./assets/micromark-factory-space-D9Dr-k4J.js">
+    <link rel="modulepreload" crossorigin href="./assets/chunk-YOKDWASO-CaoEAGJk.js">
+    <link rel="stylesheet" crossorigin href="./assets/cells-0PFKL3SH.css">
+    <link rel="stylesheet" crossorigin href="./assets/index--sT8xf-8.css">
+  <marimo-wasm hidden=""></marimo-wasm>
+    <script>
+        if (window.location.protocol === 'file:') {
+            alert('Warning: This file must be served by an HTTP server to function correctly.');
+        }
+    </script>
+    
+    <style>
+        #save-button {
+            display: none !important;
+        }
+        #filename-input {
+            display: none !important;
+        }
+    </style>
+    
+<script data-marimo="true">
+    Object.defineProperty(window, "__MARIMO_EXPORT_CONTEXT__", {
+        value: Object.freeze({
+            trusted: true,
+            notebookCode: "import marimo\n\n__generated_with = \"0.25.1\"\napp = marimo.App(width=\"medium\")\n\n\n@app.cell\ndef _():\n    import json\n\n    import marimo as mo\n    import matplotlib.pyplot as plt\n    import numpy as np\n    import pandas as pd\n\n    ARTIFACTS = mo.notebook_location() / \"public\" / \"artifacts\"\n    return ARTIFACTS, json, mo, np, pd, plt\n\n\n@app.cell\ndef _(mo):\n    mo.md(r\"\"\"\n    # Spotting Atrial Fibrillation in a PPG Pulse Waveform\n\n    Browse real fingertip PPG from the MIMIC PERform AF dataset (19 AF /\n    16 non-AF ICU patients), see the detected pulses and beat-to-beat\n    intervals, then move the decision threshold of the classical detector\n    and watch sensitivity and specificity trade off.\n\n    Everything heavy was **precomputed offline** (NeuroKit2 pulse\n    detection, logistic regression, 1D CNN, all scored with\n    subject-independent cross-validation). What runs live in your browser\n    is pure NumPy/pandas/Matplotlib: the interval features for the window\n    you pick, and the threshold sweep.\n    \"\"\")\n    return\n\n\n@app.cell\ndef _(ARTIFACTS, json, pd):\n    wf = json.loads((ARTIFACTS / \"waveforms.json\").read_text())\n    FS = wf[\"fs\"]\n    windows = wf[\"windows\"]\n    scored = pd.read_csv(ARTIFACTS / \"windows.csv\")\n    results = json.loads((ARTIFACTS / \"results.json\").read_text())\n    return FS, results, scored, windows\n\n\n@app.cell\ndef _(mo):\n    mo.md(\"\"\"\n    ## 1. Look at a 30-second window\n    \"\"\")\n    return\n\n\n@app.cell\ndef _(mo, windows):\n    subjects = sorted({w[\"subject\"] for w in windows})\n    subject_pick = mo.ui.dropdown(subjects, value=subjects[0], label=\"Subject\")\n    reveal = mo.ui.checkbox(label=\"Reveal true label\")\n    mo.hstack([subject_pick, reveal], justify=\"start\")\n    return reveal, subject_pick\n\n\n@app.cell\ndef _(mo, subject_pick, windows):\n    subj_windows = [w for w in windows if w[\"subject\"] == subject_pick.value]\n    win_pick = mo.ui.slider(\n        0, len(subj_windows) - 1, value=0, label=\"Window (of 3 sampled)\", show_value=True\n    )\n    win_pick\n    return subj_windows, win_pick\n\n\n@app.cell\ndef _(FS, np, plt, reveal, subj_windows, win_pick):\n    w = subj_windows[win_pick.value]\n    x = np.asarray(w[\"ppg\"])\n    pk = np.asarray(w[\"peaks\"])\n    t = np.arange(len(x)) / FS\n    ibi = np.diff(pk) / FS * 1000\n    ibi = ibi[(ibi \u003E 300) \u0026 (ibi \u003C 2000)]\n    d = np.diff(ibi)\n\n    fig, (a1, a2) = plt.subplots(2, 1, figsize=(10, 5.2), height_ratios=[2, 1])\n    a1.plot(t, x, lw=0.8, color=\"#34495e\")\n    a1.plot(pk / FS, x[pk], \"o\", ms=4, color=\"#e74c3c\", label=\"detected pulse\")\n    a1.set_xlabel(\"seconds\"); a1.set_ylabel(\"PPG (z-score)\"); a1.legend(loc=\"upper right\")\n    title = f\"{w['subject']}  window {w['window']}\"\n    if reveal.value:\n        title += \"  \u2014  \" + (\"AFib\" if w[\"label\"] else \"non-AF\")\n    a1.set_title(title)\n    a2.plot(ibi, \"o-\", ms=3, lw=0.8, color=\"#2c7fb8\")\n    a2.set_xlabel(\"beat #\"); a2.set_ylabel(\"interval (ms)\")\n    fig.tight_layout()\n\n    rmssd = float(np.sqrt(np.mean(d**2))) if len(d) else float(\"nan\")\n    sdnn = float(np.std(ibi)) if len(ibi) else float(\"nan\")\n    pnn50 = float(np.mean(np.abs(d) \u003E 50)) if len(d) else float(\"nan\")\n    hr = float(60000 / np.mean(ibi)) if len(ibi) else float(\"nan\")\n    fig\n    return hr, pnn50, rmssd, sdnn, w\n\n\n@app.cell\ndef _(hr, mo, pnn50, rmssd, sdnn, w):\n    mo.md(\n        f\"\"\"\n        | RMSSD | SDNN | pNN50 | mean HR | classical P(AF) | CNN P(AF) |\n        |---|---|---|---|---|---|\n        | {rmssd:.0f} ms | {sdnn:.0f} ms | {pnn50:.2f} | {hr:.0f} bpm | {w['p_classical']:.2f} | {w['p_cnn']:.2f} |\n\n        Regular rhythm \u2192 intervals hover around one value. AFib \u2192 the interval\n        trace jumps around with no pattern. The probabilities are\n        out-of-fold: this subject was **not** in the model's training set.\n        \"\"\"\n    )\n    return\n\n\n@app.cell\ndef _(mo):\n    mo.md(\"\"\"\n    ## 2. Move the detector threshold\n    \"\"\")\n    return\n\n\n@app.cell\ndef _(mo):\n    thr = mo.ui.slider(0.05, 0.95, step=0.01, value=0.5, label=\"Classify as AF if P(AF) \u2265\", show_value=True)\n    thr\n    return (thr,)\n\n\n@app.cell\ndef _(np, pd, plt, scored, thr):\n    y = scored[\"label\"].to_numpy()\n\n    def _sweep(col, th):\n        pred = scored[col].to_numpy() \u003E= th\n        tp = int(((pred) \u0026 (y == 1)).sum()); fn = int((~pred \u0026 (y == 1)).sum())\n        tn = int((~pred \u0026 (y == 0)).sum()); fp = int((pred \u0026 (y == 0)).sum())\n        return tp / max(tp + fn, 1), tn / max(tn + fp, 1)\n\n    ths = np.linspace(0.01, 0.99, 99)\n    cur = {}\n    fig2, ax = plt.subplots(figsize=(6, 5))\n    for col, name, c in [(\"p_classical\", \"Classical (7 features + LR)\", \"#2ca25f\"),\n                         (\"p_cnn\", \"1D CNN\", \"#e74c3c\"),\n                         (\"p_rmssd\", \"RMSSD only\", \"#7f8c8d\")]:\n        pts = np.array([_sweep(col, t_) for t_ in ths])\n        ax.plot(1 - pts[:, 1], pts[:, 0], color=c, label=name)\n        se, sp = _sweep(col, thr.value)\n        cur[name] = (se, sp)\n        ax.plot(1 - sp, se, \"o\", color=c, ms=9)\n    ax.plot([0, 1], [0, 1], \"k:\", lw=0.8)\n    ax.set_xlabel(\"1 \u2212 specificity\"); ax.set_ylabel(\"sensitivity\")\n    ax.set_title(f\"Operating points at threshold {thr.value:.2f}\"); ax.legend(loc=\"lower right\")\n    fig2.tight_layout()\n    table = pd.DataFrame(cur, index=[\"sensitivity\", \"specificity\"]).T.round(3)\n    return fig2, table\n\n\n@app.cell\ndef _(fig2, mo, table):\n    mo.hstack([fig2, table], justify=\"start\", align=\"center\")\n    return\n\n\n@app.cell\ndef _(mo, results):\n    ci = results[\"multi_seed\"][\"bootstrap_ci\"][\"window_level\"]\n    f = lambda m: f\"{ci[m]['auroc']['mean']:.3f} [{ci[m]['auroc']['lo']:.2f}, {ci[m]['auroc']['hi']:.2f}]\"\n    mo.md(\n        f\"\"\"\n        ## What this shows\n\n        Window-level AUROC, mean over {results['multi_seed']['n_seeds']} seeds\n        of 5-fold subject-independent CV, with 95% subject-level bootstrap\n        intervals ({results['n_windows']} windows / {results['n_subjects']}\n        subjects): classical **{f('classical_lr')}**, RMSSD only\n        {f('rmssd_only')}, 1D CNN **{f('cnn')}** (interval includes 0.5). The\n        curves and dots above are the seed-0 run. The CNN hugging the diagonal\n        is the point: with 35 patients it never learned what the interval\n        features hand the classical model for free.\n        \"\"\"\n    )\n    return\n\n\nif __name__ == \"__main__\":\n    app.run()\n",
+        }),
+        writable: false,
+        configurable: false,
+    });
+</script>
+<marimo-code hidden="">import%20marimo%0A%0A__generated_with%20%3D%20%220.25.1%22%0Aapp%20%3D%20marimo.App(width%3D%22medium%22)%0A%0A%0A%40app.cell%0Adef%20_()%3A%0A%20%20%20%20import%20json%0A%0A%20%20%20%20import%20marimo%20as%20mo%0A%20%20%20%20import%20matplotlib.pyplot%20as%20plt%0A%20%20%20%20import%20numpy%20as%20np%0A%20%20%20%20import%20pandas%20as%20pd%0A%0A%20%20%20%20ARTIFACTS%20%3D%20mo.notebook_location()%20%2F%20%22public%22%20%2F%20%22artifacts%22%0A%20%20%20%20return%20ARTIFACTS%2C%20json%2C%20mo%2C%20np%2C%20pd%2C%20plt%0A%0A%0A%40app.cell%0Adef%20_(mo)%3A%0A%20%20%20%20mo.md(r%22%22%22%0A%20%20%20%20%23%20Spotting%20Atrial%20Fibrillation%20in%20a%20PPG%20Pulse%20Waveform%0A%0A%20%20%20%20Browse%20real%20fingertip%20PPG%20from%20the%20MIMIC%20PERform%20AF%20dataset%20(19%20AF%20%2F%0A%20%20%20%2016%20non-AF%20ICU%20patients)%2C%20see%20the%20detected%20pulses%20and%20beat-to-beat%0A%20%20%20%20intervals%2C%20then%20move%20the%20decision%20threshold%20of%20the%20classical%20detector%0A%20%20%20%20and%20watch%20sensitivity%20and%20specificity%20trade%20off.%0A%0A%20%20%20%20Everything%20heavy%20was%20**precomputed%20offline**%20(NeuroKit2%20pulse%0A%20%20%20%20detection%2C%20logistic%20regression%2C%201D%20CNN%2C%20all%20scored%20with%0A%20%20%20%20subject-independent%20cross-validation).%20What%20runs%20live%20in%20your%20browser%0A%20%20%20%20is%20pure%20NumPy%2Fpandas%2FMatplotlib%3A%20the%20interval%20features%20for%20the%20window%0A%20%20%20%20you%20pick%2C%20and%20the%20threshold%20sweep.%0A%20%20%20%20%22%22%22)%0A%20%20%20%20return%0A%0A%0A%40app.cell%0Adef%20_(ARTIFACTS%2C%20json%2C%20pd)%3A%0A%20%20%20%20wf%20%3D%20json.loads((ARTIFACTS%20%2F%20%22waveforms.json%22).read_text())%0A%20%20%20%20FS%20%3D%20wf%5B%22fs%22%5D%0A%20%20%20%20windows%20%3D%20wf%5B%22windows%22%5D%0A%20%20%20%20scored%20%3D%20pd.read_csv(ARTIFACTS%20%2F%20%22windows.csv%22)%0A%20%20%20%20results%20%3D%20json.loads((ARTIFACTS%20%2F%20%22results.json%22).read_text())%0A%20%20%20%20return%20FS%2C%20results%2C%20scored%2C%20windows%0A%0A%0A%40app.cell%0Adef%20_(mo)%3A%0A%20%20%20%20mo.md(%22%22%22%0A%20%20%20%20%23%23%201.%20Look%20at%20a%2030-second%20window%0A%20%20%20%20%22%22%22)%0A%20%20%20%20return%0A%0A%0A%40app.cell%0Adef%20_(mo%2C%20windows)%3A%0A%20%20%20%20subjects%20%3D%20sorted(%7Bw%5B%22subject%22%5D%20for%20w%20in%20windows%7D)%0A%20%20%20%20subject_pick%20%3D%20mo.ui.dropdown(subjects%2C%20value%3Dsubjects%5B0%5D%2C%20label%3D%22Subject%22)%0A%20%20%20%20reveal%20%3D%20mo.ui.checkbox(label%3D%22Reveal%20true%20label%22)%0A%20%20%20%20mo.hstack(%5Bsubject_pick%2C%20reveal%5D%2C%20justify%3D%22start%22)%0A%20%20%20%20return%20reveal%2C%20subject_pick%0A%0A%0A%40app.cell%0Adef%20_(mo%2C%20subject_pick%2C%20windows)%3A%0A%20%20%20%20subj_windows%20%3D%20%5Bw%20for%20w%20in%20windows%20if%20w%5B%22subject%22%5D%20%3D%3D%20subject_pick.value%5D%0A%20%20%20%20win_pick%20%3D%20mo.ui.slider(%0A%20%20%20%20%20%20%20%200%2C%20len(subj_windows)%20-%201%2C%20value%3D0%2C%20label%3D%22Window%20(of%203%20sampled)%22%2C%20show_value%3DTrue%0A%20%20%20%20)%0A%20%20%20%20win_pick%0A%20%20%20%20return%20subj_windows%2C%20win_pick%0A%0A%0A%40app.cell%0Adef%20_(FS%2C%20np%2C%20plt%2C%20reveal%2C%20subj_windows%2C%20win_pick)%3A%0A%20%20%20%20w%20%3D%20subj_windows%5Bwin_pick.value%5D%0A%20%20%20%20x%20%3D%20np.asarray(w%5B%22ppg%22%5D)%0A%20%20%20%20pk%20%3D%20np.asarray(w%5B%22peaks%22%5D)%0A%20%20%20%20t%20%3D%20np.arange(len(x))%20%2F%20FS%0A%20%20%20%20ibi%20%3D%20np.diff(pk)%20%2F%20FS%20*%201000%0A%20%20%20%20ibi%20%3D%20ibi%5B(ibi%20%3E%20300)%20%26%20(ibi%20%3C%202000)%5D%0A%20%20%20%20d%20%3D%20np.diff(ibi)%0A%0A%20%20%20%20fig%2C%20(a1%2C%20a2)%20%3D%20plt.subplots(2%2C%201%2C%20figsize%3D(10%2C%205.2)%2C%20height_ratios%3D%5B2%2C%201%5D)%0A%20%20%20%20a1.plot(t%2C%20x%2C%20lw%3D0.8%2C%20color%3D%22%2334495e%22)%0A%20%20%20%20a1.plot(pk%20%2F%20FS%2C%20x%5Bpk%5D%2C%20%22o%22%2C%20ms%3D4%2C%20color%3D%22%23e74c3c%22%2C%20label%3D%22detected%20pulse%22)%0A%20%20%20%20a1.set_xlabel(%22seconds%22)%3B%20a1.set_ylabel(%22PPG%20(z-score)%22)%3B%20a1.legend(loc%3D%22upper%20right%22)%0A%20%20%20%20title%20%3D%20f%22%7Bw%5B'subject'%5D%7D%20%20window%20%7Bw%5B'window'%5D%7D%22%0A%20%20%20%20if%20reveal.value%3A%0A%20%20%20%20%20%20%20%20title%20%2B%3D%20%22%20%20%E2%80%94%20%20%22%20%2B%20(%22AFib%22%20if%20w%5B%22label%22%5D%20else%20%22non-AF%22)%0A%20%20%20%20a1.set_title(title)%0A%20%20%20%20a2.plot(ibi%2C%20%22o-%22%2C%20ms%3D3%2C%20lw%3D0.8%2C%20color%3D%22%232c7fb8%22)%0A%20%20%20%20a2.set_xlabel(%22beat%20%23%22)%3B%20a2.set_ylabel(%22interval%20(ms)%22)%0A%20%20%20%20fig.tight_layout()%0A%0A%20%20%20%20rmssd%20%3D%20float(np.sqrt(np.mean(d**2)))%20if%20len(d)%20else%20float(%22nan%22)%0A%20%20%20%20sdnn%20%3D%20float(np.std(ibi))%20if%20len(ibi)%20else%20float(%22nan%22)%0A%20%20%20%20pnn50%20%3D%20float(np.mean(np.abs(d)%20%3E%2050))%20if%20len(d)%20else%20float(%22nan%22)%0A%20%20%20%20hr%20%3D%20float(60000%20%2F%20np.mean(ibi))%20if%20len(ibi)%20else%20float(%22nan%22)%0A%20%20%20%20fig%0A%20%20%20%20return%20hr%2C%20pnn50%2C%20rmssd%2C%20sdnn%2C%20w%0A%0A%0A%40app.cell%0Adef%20_(hr%2C%20mo%2C%20pnn50%2C%20rmssd%2C%20sdnn%2C%20w)%3A%0A%20%20%20%20mo.md(%0A%20%20%20%20%20%20%20%20f%22%22%22%0A%20%20%20%20%20%20%20%20%7C%20RMSSD%20%7C%20SDNN%20%7C%20pNN50%20%7C%20mean%20HR%20%7C%20classical%20P(AF)%20%7C%20CNN%20P(AF)%20%7C%0A%20%20%20%20%20%20%20%20%7C---%7C---%7C---%7C---%7C---%7C---%7C%0A%20%20%20%20%20%20%20%20%7C%20%7Brmssd%3A.0f%7D%20ms%20%7C%20%7Bsdnn%3A.0f%7D%20ms%20%7C%20%7Bpnn50%3A.2f%7D%20%7C%20%7Bhr%3A.0f%7D%20bpm%20%7C%20%7Bw%5B'p_classical'%5D%3A.2f%7D%20%7C%20%7Bw%5B'p_cnn'%5D%3A.2f%7D%20%7C%0A%0A%20%20%20%20%20%20%20%20Regular%20rhythm%20%E2%86%92%20intervals%20hover%20around%20one%20value.%20AFib%20%E2%86%92%20the%20interval%0A%20%20%20%20%20%20%20%20trace%20jumps%20around%20with%20no%20pattern.%20The%20probabilities%20are%0A%20%20%20%20%20%20%20%20out-of-fold%3A%20this%20subject%20was%20**not**%20in%20the%20model's%20training%20set.%0A%20%20%20%20%20%20%20%20%22%22%22%0A%20%20%20%20)%0A%20%20%20%20return%0A%0A%0A%40app.cell%0Adef%20_(mo)%3A%0A%20%20%20%20mo.md(%22%22%22%0A%20%20%20%20%23%23%202.%20Move%20the%20detector%20threshold%0A%20%20%20%20%22%22%22)%0A%20%20%20%20return%0A%0A%0A%40app.cell%0Adef%20_(mo)%3A%0A%20%20%20%20thr%20%3D%20mo.ui.slider(0.05%2C%200.95%2C%20step%3D0.01%2C%20value%3D0.5%2C%20label%3D%22Classify%20as%20AF%20if%20P(AF)%20%E2%89%A5%22%2C%20show_value%3DTrue)%0A%20%20%20%20thr%0A%20%20%20%20return%20(thr%2C)%0A%0A%0A%40app.cell%0Adef%20_(np%2C%20pd%2C%20plt%2C%20scored%2C%20thr)%3A%0A%20%20%20%20y%20%3D%20scored%5B%22label%22%5D.to_numpy()%0A%0A%20%20%20%20def%20_sweep(col%2C%20th)%3A%0A%20%20%20%20%20%20%20%20pred%20%3D%20scored%5Bcol%5D.to_numpy()%20%3E%3D%20th%0A%20%20%20%20%20%20%20%20tp%20%3D%20int(((pred)%20%26%20(y%20%3D%3D%201)).sum())%3B%20fn%20%3D%20int((~pred%20%26%20(y%20%3D%3D%201)).sum())%0A%20%20%20%20%20%20%20%20tn%20%3D%20int((~pred%20%26%20(y%20%3D%3D%200)).sum())%3B%20fp%20%3D%20int((pred%20%26%20(y%20%3D%3D%200)).sum())%0A%20%20%20%20%20%20%20%20return%20tp%20%2F%20max(tp%20%2B%20fn%2C%201)%2C%20tn%20%2F%20max(tn%20%2B%20fp%2C%201)%0A%0A%20%20%20%20ths%20%3D%20np.linspace(0.01%2C%200.99%2C%2099)%0A%20%20%20%20cur%20%3D%20%7B%7D%0A%20%20%20%20fig2%2C%20ax%20%3D%20plt.subplots(figsize%3D(6%2C%205))%0A%20%20%20%20for%20col%2C%20name%2C%20c%20in%20%5B(%22p_classical%22%2C%20%22Classical%20(7%20features%20%2B%20LR)%22%2C%20%22%232ca25f%22)%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20(%22p_cnn%22%2C%20%221D%20CNN%22%2C%20%22%23e74c3c%22)%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20(%22p_rmssd%22%2C%20%22RMSSD%20only%22%2C%20%22%237f8c8d%22)%5D%3A%0A%20%20%20%20%20%20%20%20pts%20%3D%20np.array(%5B_sweep(col%2C%20t_)%20for%20t_%20in%20ths%5D)%0A%20%20%20%20%20%20%20%20ax.plot(1%20-%20pts%5B%3A%2C%201%5D%2C%20pts%5B%3A%2C%200%5D%2C%20color%3Dc%2C%20label%3Dname)%0A%20%20%20%20%20%20%20%20se%2C%20sp%20%3D%20_sweep(col%2C%20thr.value)%0A%20%20%20%20%20%20%20%20cur%5Bname%5D%20%3D%20(se%2C%20sp)%0A%20%20%20%20%20%20%20%20ax.plot(1%20-%20sp%2C%20se%2C%20%22o%22%2C%20color%3Dc%2C%20ms%3D9)%0A%20%20%20%20ax.plot(%5B0%2C%201%5D%2C%20%5B0%2C%201%5D%2C%20%22k%3A%22%2C%20lw%3D0.8)%0A%20%20%20%20ax.set_xlabel(%221%20%E2%88%92%20specificity%22)%3B%20ax.set_ylabel(%22sensitivity%22)%0A%20%20%20%20ax.set_title(f%22Operating%20points%20at%20threshold%20%7Bthr.value%3A.2f%7D%22)%3B%20ax.legend(loc%3D%22lower%20right%22)%0A%20%20%20%20fig2.tight_layout()%0A%20%20%20%20table%20%3D%20pd.DataFrame(cur%2C%20index%3D%5B%22sensitivity%22%2C%20%22specificity%22%5D).T.round(3)%0A%20%20%20%20return%20fig2%2C%20table%0A%0A%0A%40app.cell%0Adef%20_(fig2%2C%20mo%2C%20table)%3A%0A%20%20%20%20mo.hstack(%5Bfig2%2C%20table%5D%2C%20justify%3D%22start%22%2C%20align%3D%22center%22)%0A%20%20%20%20return%0A%0A%0A%40app.cell%0Adef%20_(mo%2C%20results)%3A%0A%20%20%20%20ci%20%3D%20results%5B%22multi_seed%22%5D%5B%22bootstrap_ci%22%5D%5B%22window_level%22%5D%0A%20%20%20%20f%20%3D%20lambda%20m%3A%20f%22%7Bci%5Bm%5D%5B'auroc'%5D%5B'mean'%5D%3A.3f%7D%20%5B%7Bci%5Bm%5D%5B'auroc'%5D%5B'lo'%5D%3A.2f%7D%2C%20%7Bci%5Bm%5D%5B'auroc'%5D%5B'hi'%5D%3A.2f%7D%5D%22%0A%20%20%20%20mo.md(%0A%20%20%20%20%20%20%20%20f%22%22%22%0A%20%20%20%20%20%20%20%20%23%23%20What%20this%20shows%0A%0A%20%20%20%20%20%20%20%20Window-level%20AUROC%2C%20mean%20over%20%7Bresults%5B'multi_seed'%5D%5B'n_seeds'%5D%7D%20seeds%0A%20%20%20%20%20%20%20%20of%205-fold%20subject-independent%20CV%2C%20with%2095%25%20subject-level%20bootstrap%0A%20%20%20%20%20%20%20%20intervals%20(%7Bresults%5B'n_windows'%5D%7D%20windows%20%2F%20%7Bresults%5B'n_subjects'%5D%7D%0A%20%20%20%20%20%20%20%20subjects)%3A%20classical%20**%7Bf('classical_lr')%7D**%2C%20RMSSD%20only%0A%20%20%20%20%20%20%20%20%7Bf('rmssd_only')%7D%2C%201D%20CNN%20**%7Bf('cnn')%7D**%20(interval%20includes%200.5).%20The%0A%20%20%20%20%20%20%20%20curves%20and%20dots%20above%20are%20the%20seed-0%20run.%20The%20CNN%20hugging%20the%20diagonal%0A%20%20%20%20%20%20%20%20is%20the%20point%3A%20with%2035%20patients%20it%20never%20learned%20what%20the%20interval%0A%20%20%20%20%20%20%20%20features%20hand%20the%20classical%20model%20for%20free.%0A%20%20%20%20%20%20%20%20%22%22%22%0A%20%20%20%20)%0A%20%20%20%20return%0A%0A%0Aif%20__name__%20%3D%3D%20%22__main__%22%3A%0A%20%20%20%20app.run()%0A</marimo-code></head>
+  <body>
+    <div id="root"></div>
+    <script data-marimo="true">
+      Object.defineProperty(window, "__MARIMO_MOUNT_CONFIG__", {
+        value: Object.freeze({
+            "filename": "notebook.py",
+            "cwd": "",
+            "lspWorkspace": null,
+            "mode": "read",
+            "version": "0.25.1",
+            "serverToken": "unused",
+            "config": {"ai": {"allow_provider_config": true, "custom_providers": {}, "enabled": true, "models": {"custom_models": [], "displayed_models": []}}, "completion": {"activate_on_typing": true, "auto_close_pairs": true, "copilot": false, "signature_hint_on_typing": false}, "diagnostics": {"sql_linter": true}, "display": {"cell_output": "below", "code_editor_font_size": 14, "code_lens": true, "dataframes": "rich", "default_table_max_columns": 50, "default_table_page_size": 10, "default_width": "medium", "reference_highlighting": true, "theme": "light"}, "formatting": {"line_length": 79}, "keymap": {"overrides": {}, "preset": "default"}, "language_servers": {"pylsp": {"enable_flake8": false, "enable_mypy": true, "enable_pydocstyle": false, "enable_pyflakes": false, "enable_pylint": false, "enable_ruff": true, "enabled": false}}, "mcp": {"mcpServers": {}, "presets": []}, "package_management": {"manager": "pip"}, "runtime": {"auto_instantiate": false, "auto_reload": "off", "default_csv_encoding": "utf-8", "default_sql_output": "auto", "on_cell_change": "autorun", "output_max_bytes": 8000000, "reactive_tests": true, "show_tracebacks": false, "std_stream_max_bytes": 1000000, "watcher_on_save": "lazy"}, "save": {"autosave": "off", "autosave_delay": 1000, "format_on_save": false}, "server": {"browser": "default", "follow_symlink": false}, "snippets": {"custom_paths": [], "include_default_snippets": true}},
+            "configOverrides": {},
+            "appConfig": {"sql_output": "auto", "width": "medium"},
+            "layout": null,
+            "view": {"showAppCode": false},
+            "notebook": null,
+            "session": null,
+            "runtimeConfig": null
+        }),
+        writable: false,
+        configurable: false,
+      });
+    </script>
+  </body>
+</html>
